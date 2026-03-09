@@ -1,0 +1,59 @@
+<nav>
+  <a class="nav-logo" href="/index.html"><span>//</span> CodeArena</a>
+  <ul class="nav-links">
+    <li><a href="/problems" data-page="problems">Задачи</a></li>
+    <li><a href="/contests" data-page="contests">Контесты</a></li>
+    <li><a href="/leaderboard" data-page="leaderboard">Лидерборд</a></li>
+  </ul>
+  <div class="nav-right" id="navRight">
+    <!-- JS заполнит: аватарка если залогинен, кнопка входа если нет -->
+  </div>
+</nav>
+
+<script>
+  // Подсвечиваем активный пункт меню
+  (function() {
+    const page = document.currentScript.closest('body')
+      ? document.body.dataset.page
+      : null
+    if (page) {
+      const link = document.querySelector(`.nav-links a[data-page="${page}"]`)
+      if (link) link.classList.add('active')
+    }
+  })()
+
+  // Рендерим правую часть шапки в зависимости от авторизации
+  (function() {
+    const token = localStorage.getItem('access_token')
+    const username = localStorage.getItem('username')
+    const avatar = localStorage.getItem('avatar_url')
+    const navRight = document.getElementById('navRight')
+
+    if (token && username) {
+      const initials = username.slice(0, 2).toUpperCase()
+      navRight.innerHTML = `
+        <a href="/profile.html?u=${username}" class="nav-user">
+          ${avatar
+            ? `<img src="${avatar}" class="nav-avatar" alt="${username}"/>`
+            : `<div class="nav-avatar nav-avatar--initials">${initials}</div>`
+          }
+          <span class="nav-username">${username}</span>
+        </a>
+        <button class="nav-logout" onclick="logout()">Выйти</button>
+      `
+    } else {
+      navRight.innerHTML = `
+        <a href="/login.html" class="btn-nav-login">Войти</a>
+        <a href="/register.html" class="btn-nav-register">Регистрация</a>
+      `
+    }
+  })()
+
+  function logout() {
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
+    localStorage.removeItem('username')
+    localStorage.removeItem('avatar_url')
+    window.location.href = '/login.html'
+  }
+</script>

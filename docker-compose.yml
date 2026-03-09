@@ -1,0 +1,79 @@
+services:
+  django-app:
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./leet_code:/leet_code
+    environment:
+      - DB_HOST=database
+      - DB_NAME=dbname
+      - DB_USER=dbuser
+      - DB_PASS=pasSNpos#12
+    env_file:
+      - .env
+    depends_on:
+      - database
+
+  database:
+    image: postgres:14.6
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=dbname
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=pasSNpos#12
+
+  redis:
+    image: redis:7.2
+    hostname: redis
+
+  worker:
+    build:
+      context: .
+    hostname: worker1
+    entrypoint: celery
+    command: -A celery_app.app worker --loglevel=info
+    volumes:
+      - ./leet_code:/leet_code
+    depends_on:
+      - redis
+      - database
+    environment:
+      - DB_HOST=database
+      - DB_NAME=dbname
+      - DB_USER=dbuser
+      - DB_PASS=pasSNpos#12
+
+  flower:
+    build:
+      context: .
+    hostname: flower
+    entrypoint: celery
+    command: -A celery_app.app flower
+    volumes:
+      - ./leet_code:/leet_code
+    links:
+      - redis
+    depends_on:
+      - redis
+    ports:
+      - '5555:5555'
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - static_static:/app/staticfiles:ro
+      - ./frontend:/usr/share/nginx/html:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - django-app
+
+volumes:
+  static_static:
+  postgres_data:

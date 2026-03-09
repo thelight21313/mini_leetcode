@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Задачи — CodeArena</title>
+  <meta name="description" content="Список задач по программированию"/>
+  <link rel="icon" href="/favicon.ico"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0a0a0f;
+      --surface:  #111118;
+      --surface2: #1a1a24;
+      --border:   #2a2a3a;
+      --accent:   #7c6aff;
+      --accent2:  #ff6a6a;
+      --green:    #4ade80;
+      --yellow:   #fbbf24;
+      --red:      #f87171;
+      --text:     #e8e8f0;
+      --muted:    #6b6b8a;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Syne', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV (стили для navbar.html) ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      height: 56px;
+      background: rgba(10,10,15,0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-logo span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active { color: var(--text); }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .nav-user {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .nav-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .nav-avatar--initials {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .nav-username {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .nav-logout {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.3rem 0.75rem;
+      border-radius: 5px;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-logout:hover { border-color: var(--red); color: var(--red); }
+
+    .btn-nav-login {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .btn-nav-login:hover { color: var(--text); }
+
+    .btn-nav-register {
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      padding: 0.35rem 0.9rem;
+      border-radius: 5px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      transition: background 0.2s;
+    }
+
+    .btn-nav-register:hover { background: #6a58f0; }
+
+    /* ── VIEWS ── */
+    #view-problems,
+    #view-problem { position: relative; z-index: 1; }
+    #view-problem  { display: none; }
+
+    /* ── PROBLEMS LIST ── */
+    .problems-header {
+      padding: 3rem 2rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .problems-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+
+    .problems-title span { color: var(--accent); }
+
+    .problems-sub {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.8rem;
+    }
+
+    /* filters */
+    .filters {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem 0.75rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      flex: 1;
+      min-width: 220px;
+      position: relative;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.6rem 1rem 0.6rem 2.4rem;
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-wrap input:focus { border-color: var(--accent); }
+
+    .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.55rem 0.9rem;
+      border-radius: 6px;
+      font-family: var(--sans);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+
+    .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+    .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .filter-btn.active.easy   { background: rgba(74,222,128,0.15);  border-color: var(--green);  color: var(--green);  }
+    .filter-btn.active.medium { background: rgba(251,191,36,0.15);  border-color: var(--yellow); color: var(--yellow); }
+    .filter-btn.active.hard   { background: rgba(248,113,113,0.15); border-color: var(--red);    color: var(--red);    }
+
+    .tags-row {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem 1.5rem;
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .tag-filter {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.3rem 0.7rem;
+      border-radius: 20px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+
+    .tag-filter:hover { border-color: var(--accent); color: var(--text); }
+    .tag-filter.active { background: var(--surface2); border-color: var(--accent); color: var(--accent); }
+
+    /* table */
+    .table-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem 4rem;
+    }
+
+    .table-meta {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead tr { border-bottom: 1px solid var(--border); }
+
+    th {
+      text-align: left;
+      padding: 0.6rem 1rem;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 500;
+      user-select: none;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(42,42,58,0.5);
+      cursor: pointer;
+      transition: background 0.12s;
+      animation: rowIn 0.2s ease both;
+    }
+
+    @keyframes rowIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    tbody tr:hover { background: var(--surface); }
+
+    td { padding: 0.85rem 1rem; font-size: 0.88rem; }
+
+    .td-status { width: 36px; text-align: center; }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .status-dot.accepted { background: var(--green);  box-shadow: 0 0 5px var(--green); }
+    .status-dot.attempted { background: var(--yellow); box-shadow: 0 0 5px var(--yellow); }
+    .status-dot.none      { background: var(--border); }
+
+    .td-num {
+      font-family: var(--mono);
+      font-size: 0.73rem;
+      color: var(--muted);
+      width: 56px;
+    }
+
+    .td-title { font-weight: 600; }
+    .td-tags  { width: 220px; }
+
+    .tag {
+      display: inline-block;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.12rem 0.45rem;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      margin-right: 3px;
+      margin-bottom: 2px;
+    }
+
+    .td-diff { width: 96px; }
+
+    .diff {
+      font-family: var(--mono);
+      font-size: 0.73rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 0.18rem 0.55rem;
+      border-radius: 4px;
+    }
+
+    .diff.easy   { color: var(--green);  background: rgba(74,222,128,0.08); }
+    .diff.medium { color: var(--yellow); background: rgba(251,191,36,0.08); }
+    .diff.hard   { color: var(--red);    background: rgba(248,113,113,0.08); }
+
+    .td-solved {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      width: 72px;
+      text-align: right;
+    }
+
+    /* skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 4px;
+      height: 13px;
+      display: inline-block;
+    }
+
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* pagination */
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      justify-content: center;
+      padding: 1rem 0 3rem;
+    }
+
+    .page-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      width: 34px;
+      height: 34px;
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .page-btn:hover    { border-color: var(--accent); color: var(--text); }
+    .page-btn.active   { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* error state */
+    .state-box {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      line-height: 2;
+    }
+
+    .state-box .state-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+
+    /* ── PROBLEM PAGE ── */
+    .problem-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      height: calc(100vh - 56px);
+    }
+
+    .problem-left {
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 2rem;
+    }
+
+    .problem-left::-webkit-scrollbar { width: 4px; }
+    .problem-left::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      cursor: pointer;
+      border: none;
+      background: none;
+      padding: 0;
+      margin-bottom: 1.5rem;
+      transition: color 0.2s;
+    }
+
+    .back-btn:hover { color: var(--text); }
+
+    .problem-num {
+      font-family: var(--mono);
+      font-size: 0.73rem;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .problem-name {
+      font-size: 1.55rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+
+    .problem-meta {
+      display: flex;
+      gap: 0.65rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .problem-body {
+      font-size: 0.88rem;
+      line-height: 1.75;
+      color: #c4c4d4;
+    }
+
+    .problem-body code {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      color: var(--accent);
+    }
+
+    .problem-body h3 {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 1.5rem 0 0.6rem;
+    }
+
+    .example-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--accent);
+      border-radius: 0 6px 6px 0;
+      padding: 0.9rem 1rem;
+      margin: 0.4rem 0 1rem;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+    }
+
+    .example-label {
+      font-size: 0.67rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .example-val { color: var(--text); }
+
+    .constraints-list { list-style: none; display: flex; flex-direction: column; gap: 0.35rem; }
+
+    .constraints-list li {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+
+    .constraints-list li::before { content: '—'; color: var(--border); flex-shrink: 0; }
+
+    /* right panel */
+    .problem-right {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .editor-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+
+    .lang-select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.3rem 0.7rem;
+      border-radius: 5px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .editor-actions { display: flex; gap: 0.5rem; }
+
+    .btn {
+      padding: 0.38rem 0.9rem;
+      border-radius: 5px;
+      font-family: var(--sans);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.18s;
+    }
+
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--text); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #6a58f0; }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    #monacoContainer {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* result panel */
+    .result-panel {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+      max-height: 200px;
+      overflow-y: auto;
+      transition: max-height 0.3s ease;
+    }
+
+    .result-panel.hidden { max-height: 0; overflow: hidden; }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .result-title {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .result-status { font-family: var(--mono); font-size: 0.8rem; font-weight: 700; }
+    .result-status.accepted { color: var(--green); }
+    .result-status.wrong    { color: var(--red); }
+    .result-status.pending  { color: var(--yellow); animation: pulse 1s infinite; }
+
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    .result-body {
+      padding: 0.65rem 1.25rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      line-height: 1.7;
+    }
+
+    .result-row { display: flex; gap: 2rem; }
+    .result-row span:first-child { color: var(--muted); min-width: 80px; }
+    .result-row span:last-child  { color: var(--text); }
+
+    /* toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 0.7rem 1.2rem;
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--text);
+      z-index: 999;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.28s cubic-bezier(.34,1.56,.64,1);
+      pointer-events: none;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+  </style>
+</head>
+<body data-page="problems">
+
+<!-- Шапка подгружается из navbar.html -->
+<div id="navbar-mount"></div>
+
+<!-- ══ VIEW 1 — СПИСОК ══ -->
+<div id="view-problems">
+
+  <div class="problems-header">
+    <h1 class="problems-title">Задачи<span>.</span></h1>
+    <p class="problems-sub" id="listMeta">// загрузка...</p>
+  </div>
+
+  <div class="filters">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" placeholder="Поиск задач..."/>
+    </div>
+    <div class="filter-group" id="diffFilters">
+      <button class="filter-btn active" data-diff="">Все</button>
+      <button class="filter-btn easy"   data-diff="easy">Easy</button>
+      <button class="filter-btn medium" data-diff="medium">Medium</button>
+      <button class="filter-btn hard"   data-diff="hard">Hard</button>
+    </div>
+  </div>
+
+  <!-- теги — подгружаются с API -->
+  <div class="tags-row" id="tagsRow"></div>
+
+  <div class="table-wrap">
+    <div class="table-meta" id="tableMeta"></div>
+    <table>
+      <thead>
+        <tr>
+          <th class="td-status"></th>
+          <th class="td-num">#</th>
+          <th>Название</th>
+          <th class="td-tags">Теги</th>
+          <th class="td-diff">Сложность</th>
+          <th class="td-solved">Решили</th>
+        </tr>
+      </thead>
+      <tbody id="problemsBody">
+        <!-- скелетон при загрузке -->
+        <tr><td colspan="6" style="padding:1rem"><div class="skeleton" style="width:100%"></div></td></tr>
+        <tr><td colspan="6" style="padding:1rem"><div class="skeleton" style="width:82%"></div></td></tr>
+        <tr><td colspan="6" style="padding:1rem"><div class="skeleton" style="width:67%"></div></td></tr>
+        <tr><td colspan="6" style="padding:1rem"><div class="skeleton" style="width:90%"></div></td></tr>
+        <tr><td colspan="6" style="padding:1rem"><div class="skeleton" style="width:74%"></div></td></tr>
+      </tbody>
+    </table>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+</div>
+
+<!-- ══ VIEW 2 — ЗАДАЧА ══ -->
+<div id="view-problem">
+  <div class="problem-layout">
+
+    <div class="problem-left">
+      <button class="back-btn" id="backBtn">← к списку задач</button>
+      <div class="problem-num" id="problemNum"></div>
+      <h2 class="problem-name" id="problemName">
+        <span class="skeleton" style="width:60%;height:1.4rem"></span>
+      </h2>
+      <div class="problem-meta" id="problemMeta"></div>
+      <div class="problem-body" id="problemBody">
+        <div class="skeleton" style="width:100%;margin-bottom:.75rem"></div>
+        <div class="skeleton" style="width:88%;margin-bottom:.75rem"></div>
+        <div class="skeleton" style="width:72%"></div>
+      </div>
+    </div>
+
+    <div class="problem-right">
+      <div class="editor-toolbar">
+        <select class="lang-select" id="langSelect">
+          <option value="python">Python 3</option>
+          <option value="javascript">JavaScript</option>
+          <option value="go">Go</option>
+          <option value="cpp">C++</option>
+        </select>
+        <div class="editor-actions">
+          <button class="btn btn-ghost" id="runBtn">▶ Запустить</button>
+          <button class="btn btn-primary" id="submitBtn">Отправить →</button>
+        </div>
+      </div>
+
+      <div id="monacoContainer"></div>
+
+      <div class="result-panel hidden" id="resultPanel">
+        <div class="result-header">
+          <span class="result-title">Результат</span>
+          <span class="result-status" id="resultStatus"></span>
+        </div>
+        <div class="result-body" id="resultBody"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Monaco CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+
+<script>
+const API = '/api'   // базовый URL бэкенда
+
+// ── Auth helper ──
+function authHeaders() {
+  const token = localStorage.getItem('access_token')
+  return token ? { 'Authorization': `Bearer ${token}` } : {}
+}
+
+// ── Toast ──
+function showToast(msg) {
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.classList.add('show')
+  clearTimeout(t._tid)
+  t._tid = setTimeout(() => t.classList.remove('show'), 2800)
+}
+
+// ── Helpers ──
+function diffLabel(d) {
+  const map = { easy: 'Easy', medium: 'Medium', hard: 'Hard' }
+  return `<span class="diff ${d}">${map[d] ?? d}</span>`
+}
+
+function statusDot(s) {
+  return `<span class="status-dot ${s ?? 'none'}" title="${s ?? ''}"></span>`
+}
+
+// ── URL params ──
+function getParams() {
+  return new URLSearchParams(location.search)
+}
+
+function setParam(key, value) {
+  const p = getParams()
+  if (value) p.set(key, value)
+  else p.delete(key)
+  history.replaceState({}, '', `${location.pathname}?${p}`)
+}
+
+// ── Шапка ──
+async function loadNavbar() {
+  try {
+    const res = await fetch('/navbar.html')
+    document.getElementById('navbar-mount').innerHTML = await res.text()
+  } catch {
+    // если navbar.html недоступен — рендерим минималистичную заглушку
+    document.getElementById('navbar-mount').innerHTML =
+      `<nav><a class="nav-logo" href="/"><span>//</span> CodeArena</a></nav>`
+  }
+}
+
+// ── Теги с API ──
+async function loadTags() {
+  try {
+    const res = await fetch(`${API}/tags/`, { headers: authHeaders() })
+    if (!res.ok) return
+    const tags = await res.json()   // [{ id, name }, ...]
+    const activeTags = (getParams().get('tags') || '').split(',').filter(Boolean)
+    const row = document.getElementById('tagsRow')
+    row.innerHTML = tags.map(t => `
+      <button class="tag-filter ${activeTags.includes(String(t.id)) ? 'active' : ''}"
+              data-id="${t.id}">${t.name}</button>
+    `).join('')
+    row.querySelectorAll('.tag-filter').forEach(btn => {
+      btn.addEventListener('click', () => toggleTag(btn.dataset.id))
+    })
+  } catch { /* теги не критичны */ }
+}
+
+function toggleTag(id) {
+  const p = getParams()
+  const current = (p.get('tags') || '').split(',').filter(Boolean)
+  const idx = current.indexOf(id)
+  if (idx === -1) current.push(id)
+  else current.splice(idx, 1)
+  if (current.length) p.set('tags', current.join(','))
+  else p.delete('tags')
+  history.replaceState({}, '', `${location.pathname}?${p}`)
+  loadProblems()
+  // обновить классы кнопок
+  document.querySelectorAll('.tag-filter').forEach(btn => {
+    btn.classList.toggle('active', current.includes(btn.dataset.id))
+  })
+}
+
+// ── Загрузка списка задач ──
+async function loadProblems() {
+  const p = getParams()
+  const params = new URLSearchParams()
+  if (p.get('difficulty')) params.set('difficulty', p.get('difficulty'))
+  if (p.get('tags'))       params.set('tags', p.get('tags'))
+  if (p.get('search'))     params.set('search', p.get('search'))
+  if (p.get('page'))       params.set('page', p.get('page'))
+
+  showSkeleton()
+
+  try {
+    const res = await fetch(`${API}/problems/?${params}`, { headers: authHeaders() })
+
+    if (!res.ok) { showError('Ошибка загрузки задач', res.status); return }
+
+    // DRF pagination: { count, next, previous, results: [...] }
+    const data = await res.json()
+    renderProblems(data.results, data.count, p.get('page') || 1)
+
+  } catch (err) {
+    showError('Нет связи с сервером')
+  }
+}
+
+function showSkeleton() {
+  document.getElementById('problemsBody').innerHTML = [100,82,67,90,74].map(w => `
+    <tr><td colspan="6" style="padding:1rem">
+      <div class="skeleton" style="width:${w}%"></div>
+    </td></tr>
+  `).join('')
+  document.getElementById('tableMeta').textContent = ''
+  document.getElementById('pagination').innerHTML = ''
+}
+
+function showError(msg, code) {
+  document.getElementById('problemsBody').innerHTML = `
+    <tr><td colspan="6">
+      <div class="state-box">
+        <div class="state-icon">⚠</div>
+        ${msg}${code ? ` (${code})` : ''}<br>
+        <span style="font-size:.75rem;opacity:.6">Попробуй обновить страницу</span>
+      </div>
+    </td></tr>
+  `
+}
+
+function renderProblems(problems, total, currentPage) {
+  const pageSize = 20
+  const totalPages = Math.ceil(total / pageSize)
+
+  document.getElementById('listMeta').textContent =
+    `// найдено задач: ${total}`
+
+  document.getElementById('tableMeta').textContent =
+    total ? `Показаны ${problems.length} из ${total}` : ''
+
+  const tbody = document.getElementById('problemsBody')
+
+  if (!problems.length) {
+    tbody.innerHTML = `
+      <tr><td colspan="6">
+        <div class="state-box">
+          <div class="state-icon">∅</div>
+          Задачи не найдены<br>
+          <span style="font-size:.75rem;opacity:.6">Попробуй изменить фильтры</span>
+        </div>
+      </td></tr>
+    `
+    return
+  }
+
+  tbody.innerHTML = problems.map((p, i) => `
+    <tr style="animation-delay:${i * 30}ms" onclick="openProblem('${p.slug}')">
+      <td class="td-status">${statusDot(p.user_status)}</td>
+      <td class="td-num">${String(p.id).padStart(3,'0')}</td>
+      <td class="td-title">${escHtml(p.title)}</td>
+      <td class="td-tags">${(p.tags || []).slice(0,2).map(t=>`<span class="tag">${escHtml(t.name)}</span>`).join('')}</td>
+      <td class="td-diff">${diffLabel(p.difficulty)}</td>
+      <td class="td-solved">${p.solved_percent ?? '—'}%</td>
+    </tr>
+  `).join('')
+
+  renderPagination(Number(currentPage), totalPages)
+}
+
+function renderPagination(current, total) {
+  if (total <= 1) { document.getElementById('pagination').innerHTML = ''; return }
+
+  let pages = []
+  pages.push(1)
+  for (let i = Math.max(2, current-1); i <= Math.min(total-1, current+1); i++) pages.push(i)
+  if (total > 1) pages.push(total)
+  pages = [...new Set(pages)].sort((a,b)=>a-b)
+
+  let html = `<button class="page-btn" onclick="goPage(${current-1})" ${current===1?'disabled':''}>←</button>`
+  let prev = 0
+  for (const p of pages) {
+    if (p - prev > 1) html += `<span style="color:var(--muted);font-family:var(--mono);font-size:.8rem">…</span>`
+    html += `<button class="page-btn ${p===current?'active':''}" onclick="goPage(${p})">${p}</button>`
+    prev = p
+  }
+  html += `<button class="page-btn" onclick="goPage(${current+1})" ${current===total?'disabled':''}>→</button>`
+
+  document.getElementById('pagination').innerHTML = html
+}
+
+function goPage(n) {
+  setParam('page', n > 1 ? n : null)
+  loadProblems()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// ── XSS защита ──
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+// ── Фильтры ──
+document.querySelectorAll('#diffFilters .filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#diffFilters .filter-btn').forEach(b => b.classList.remove('active'))
+    btn.classList.add('active')
+    setParam('difficulty', btn.dataset.diff)
+    setParam('page', null)
+    loadProblems()
+  })
+})
+
+let searchTimer
+document.getElementById('searchInput').addEventListener('input', e => {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    setParam('search', e.target.value.trim())
+    setParam('page', null)
+    loadProblems()
+  }, 350)   // debounce 350ms
+})
+
+// восстанавливаем фильтры из URL при загрузке
+function restoreFilters() {
+  const p = getParams()
+  const diff = p.get('difficulty') || ''
+  const search = p.get('search') || ''
+
+  document.getElementById('searchInput').value = search
+
+  document.querySelectorAll('#diffFilters .filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.diff === diff)
+  })
+}
+
+// ── Monaco ──
+let monacoEditor = null
+
+function initMonaco(value = '# напиши решение здесь\n') {
+  require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } })
+  require(['vs/editor/editor.main'], () => {
+    if (monacoEditor) { monacoEditor.dispose(); monacoEditor = null }
+
+    const container = document.getElementById('monacoContainer')
+    monacoEditor = monaco.editor.create(container, {
+      value,
+      language: 'python',
+      theme: 'vs-dark',
+      fontSize: 14,
+      lineHeight: 22,
+      fontFamily: "'JetBrains Mono', monospace",
+      fontLigatures: true,
+      minimap: { enabled: false },
+      scrollBeyondLastLine: false,
+      renderLineHighlight: 'line',
+      padding: { top: 16, bottom: 16 },
+      smoothScrolling: true,
+      cursorBlinking: 'smooth',
+    })
+
+    // подстраиваем высоту при ресайзе
+    new ResizeObserver(() => monacoEditor.layout()).observe(container)
+  })
+}
+
+document.getElementById('langSelect').addEventListener('change', e => {
+  if (!monacoEditor) return
+  const langMap = { python: 'python', javascript: 'javascript', go: 'go', cpp: 'cpp' }
+  monaco.editor.setModelLanguage(monacoEditor.getModel(), langMap[e.target.value] || 'plaintext')
+})
+
+// ── Открыть задачу ──
+async function openProblem(slug) {
+  document.getElementById('view-problems').style.display = 'none'
+  document.getElementById('view-problem').style.display = 'block'
+  history.pushState({ slug }, '', `/problems/${slug}`)
+
+  // сбросить состояние
+  document.getElementById('problemName').innerHTML = `<span class="skeleton" style="width:55%;height:1.4rem;display:inline-block"></span>`
+  document.getElementById('problemNum').textContent = ''
+  document.getElementById('problemMeta').innerHTML = ''
+  document.getElementById('problemBody').innerHTML = [100,88,72,60].map(w=>
+    `<div class="skeleton" style="width:${w}%;margin-bottom:.75rem"></div>`
+  ).join('')
+  document.getElementById('resultPanel').classList.add('hidden')
+
+  if (!monacoEditor) initMonaco()
+
+  try {
+    const res = await fetch(`${API}/problems/${slug}/`, { headers: authHeaders() })
+    if (!res.ok) { showToast('Задача не найдена'); goBack(); return }
+    const p = await res.json()
+    renderProblem(p)
+  } catch {
+    showToast('Ошибка загрузки задачи')
+    goBack()
+  }
+}
+
+function renderProblem(p) {
+  document.getElementById('problemNum').textContent = `#${String(p.id).padStart(3,'0')}`
+  document.getElementById('problemName').textContent = p.title
+
+  document.getElementById('problemMeta').innerHTML = `
+    ${diffLabel(p.difficulty)}
+    ${(p.tags||[]).map(t=>`<span class="tag">${escHtml(t.name)}</span>`).join('')}
+    <span style="margin-left:auto;font-family:var(--mono);font-size:.72rem;color:var(--muted)">
+      ⏱ ${p.time_limit_ms}ms &nbsp;💾 ${p.memory_limit_mb}MB
+    </span>
+  `
+
+  const examples = (p.examples || []).map((e, i) => `
+    <h3>Пример ${i+1}</h3>
+    <div class="example-block">
+      <div class="example-label">Ввод</div>
+      <div class="example-val">${escHtml(e.input)}</div>
+      <div class="example-label" style="margin-top:.5rem">Вывод</div>
+      <div class="example-val">${escHtml(e.output)}</div>
+      ${e.explanation
+        ? `<div class="example-label" style="margin-top:.5rem">Пояснение</div>
+           <div class="example-val" style="color:var(--muted)">${escHtml(e.explanation)}</div>`
+        : ''}
+    </div>
+  `).join('')
+
+  const constraints = (p.constraints || []).length ? `
+    <h3>Ограничения</h3>
+    <ul class="constraints-list">
+      ${p.constraints.map(c=>`<li>${escHtml(c)}</li>`).join('')}
+    </ul>
+  ` : ''
+
+  document.getElementById('problemBody').innerHTML =
+    `<p>${p.description}</p>${examples}${constraints}`
+
+  // загружаем последнее решение пользователя если есть
+  if (p.last_submission_code && monacoEditor) {
+    monacoEditor.setValue(p.last_submission_code)
+  }
+}
+
+// ── Назад ──
+function goBack() {
+  document.getElementById('view-problem').style.display = 'none'
+  document.getElementById('view-problems').style.display = 'block'
+  history.pushState({}, '', `/problems${location.search}`)
+}
+
+document.getElementById('backBtn').addEventListener('click', goBack)
+
+window.addEventListener('popstate', () => {
+  const parts = location.pathname.replace(/\/$/, '').split('/')
+  if (parts[parts.length - 1] === 'problems' || parts[parts.length - 1] === 'problems.html') {
+    goBack()
+  }
+})
+
+// ── Submit ──
+async function handleSubmit() {
+  if (!monacoEditor) return
+  const code = monacoEditor.getValue().trim()
+  if (!code) { showToast('Напиши решение!'); return }
+
+  const slug = location.pathname.split('/').pop()
+  const lang = document.getElementById('langSelect').value
+  const token = localStorage.getItem('access_token')
+  if (!token) { showToast('Нужно войти в аккаунт'); return }
+
+  const btn = document.getElementById('submitBtn')
+  btn.disabled = true
+  btn.textContent = 'Отправка...'
+
+  const panel = document.getElementById('resultPanel')
+  panel.classList.remove('hidden')
+  document.getElementById('resultStatus').className = 'result-status pending'
+  document.getElementById('resultStatus').textContent = '● Проверяется...'
+  document.getElementById('resultBody').innerHTML = ''
+
+  try {
+    const res = await fetch(`${API}/submissions/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ problem_slug: slug, code, language: lang })
+    })
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      showToast(err.detail || 'Ошибка отправки')
+      resetSubmitBtn()
+      return
+    }
+
+    const submission = await res.json()
+    // submission.id используем для WebSocket — подключишь позже
+    // TODO: ws = new WebSocket(`/ws/submissions/${submission.id}/`)
+    // пока просто поллинг каждые 1.5с
+    pollSubmission(submission.id)
+
+  } catch {
+    showToast('Нет связи с сервером')
+    resetSubmitBtn()
+  }
+}
+
+async function pollSubmission(id) {
+  const maxAttempts = 20
+  let attempts = 0
+
+  const interval = setInterval(async () => {
+    attempts++
+    try {
+      const res = await fetch(`${API}/submissions/${id}/`, { headers: authHeaders() })
+      if (!res.ok) { clearInterval(interval); resetSubmitBtn(); return }
+      const s = await res.json()
+
+      if (s.status === 'pending' || s.status === 'running') {
+        document.getElementById('resultStatus').textContent = `● ${s.status === 'running' ? 'Запущен...' : 'Ожидание...'}`
+        if (attempts >= maxAttempts) { clearInterval(interval); resetSubmitBtn(); showToast('Превышено время ожидания') }
+        return
+      }
+
+      clearInterval(interval)
+      showResult(s)
+      resetSubmitBtn()
+
+    } catch {
+      clearInterval(interval)
+      resetSubmitBtn()
+    }
+  }, 1500)
+}
+
+function showResult(s) {
+  const ok = s.status === 'accepted'
+  document.getElementById('resultStatus').className = `result-status ${ok ? 'accepted' : 'wrong'}`
+  document.getElementById('resultStatus').textContent = ok ? '✓ Принято' : `✗ ${statusText(s.status)}`
+  document.getElementById('resultBody').innerHTML = `
+    <div class="result-row"><span>Статус</span><span>${statusText(s.status)}</span></div>
+    ${s.runtime_ms   != null ? `<div class="result-row"><span>Время</span><span>${s.runtime_ms} ms</span></div>` : ''}
+    ${s.memory_mb    != null ? `<div class="result-row"><span>Память</span><span>${s.memory_mb} MB</span></div>` : ''}
+    ${s.error_output ? `<div style="margin-top:.5rem;color:var(--red);white-space:pre-wrap">${escHtml(s.error_output)}</div>` : ''}
+  `
+  showToast(ok ? '🎉 Задача решена!' : '❌ Попробуй ещё раз')
+}
+
+function statusText(s) {
+  return {
+    accepted:          'Принято',
+    wrong_answer:      'Неверный ответ',
+    time_limit:        'Превышен лимит времени',
+    memory_limit:      'Превышен лимит памяти',
+    runtime_error:     'Ошибка выполнения',
+    compilation_error: 'Ошибка компиляции',
+  }[s] ?? s
+}
+
+function resetSubmitBtn() {
+  const btn = document.getElementById('submitBtn')
+  btn.disabled = false
+  btn.textContent = 'Отправить →'
+}
+
+document.getElementById('submitBtn').addEventListener('click', handleSubmit)
+document.getElementById('runBtn').addEventListener('click', () => showToast('Run появится позже'))
+
+// ── Init ──
+async function init() {
+  await loadNavbar()
+  restoreFilters()
+  await Promise.all([loadTags(), loadProblems()])
+
+  // прямой переход по URL /problems/two-sum
+  const parts = location.pathname.replace(/\/$/, '').split('/')
+  const slug = parts[parts.length - 1]
+  if (slug && slug !== 'problems' && slug !== 'problems.html') {
+    openProblem(slug)
+  }
+}
+
+init()
+</script>
+</body>
+</html>
