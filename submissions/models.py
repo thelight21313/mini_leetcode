@@ -5,7 +5,7 @@ User = get_user_model()
 
 class Submission(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    task = models.ForeignKey('problems.Problem', on_delete=models.CASCADE)
+    task = models.ForeignKey('problems.Problem', on_delete=models.CASCADE, related_name='submissions')
     contest = models.ForeignKey('contests.Contest', on_delete=models.CASCADE, null=True)
     code = models.TextField()
 

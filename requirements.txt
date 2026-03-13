@@ -7,3 +7,4 @@ celery==5.6.2
 redis==6.4.0
 gunicorn==23.0.0
 asgiref==3.11.1
+flower

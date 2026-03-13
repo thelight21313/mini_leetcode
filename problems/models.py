@@ -6,7 +6,6 @@ User = get_user_model()
 
 class Tag(models.Model):
     name = models.CharField(max_length=50)
-    slug = AutoSlugField(populate_from='name', unique=True)
 
 
 class Problem(models.Model):
@@ -24,6 +23,7 @@ class Problem(models.Model):
     difficulty = models.CharField(choices=DIFFICULT_CHOICE, max_length=10)
     time_limit_ms = models.IntegerField()
     memory_limit_mb = models.IntegerField()
+    constraints = models.JSONField(default=list, blank=True)
 
     tags = models.ManyToManyField(Tag, blank=True)
     is_published = models.BooleanField(default=False)
@@ -38,3 +38,4 @@ class TestCase(models.Model):
     is_published = models.BooleanField(default=False)
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE, related_name='test_cases')
     order = models.PositiveIntegerField(default=0)
+    explanation = models.CharField(max_length=100)

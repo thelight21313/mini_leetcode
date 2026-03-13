@@ -5,7 +5,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./leet_code:/leet_code
+      - .:/app
     environment:
       - DB_HOST=database
       - DB_NAME=dbname
@@ -36,7 +36,7 @@ services:
     entrypoint: celery
     command: -A celery_app.app worker --loglevel=info
     volumes:
-      - ./leet_code:/leet_code
+      - .:/app
     depends_on:
       - redis
       - database
@@ -53,7 +53,7 @@ services:
     entrypoint: celery
     command: -A celery_app.app flower
     volumes:
-      - ./leet_code:/leet_code
+      - .:/app
     links:
       - redis
     depends_on:
