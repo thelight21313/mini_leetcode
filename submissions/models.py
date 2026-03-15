@@ -5,8 +5,8 @@ User = get_user_model()
 
 class Submission(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    task = models.ForeignKey('problems.Problem', on_delete=models.CASCADE, related_name='submissions')
-    contest = models.ForeignKey('contests.Contest', on_delete=models.CASCADE, null=True)
+    problem = models.ForeignKey('problems.Problem', on_delete=models.CASCADE, related_name='submissions')
+    contest = models.ForeignKey('contests.Contest', on_delete=models.SET_NULL, null=True, blank=True)
     code = models.TextField()
 
     LANGUAGE_CHOICE = [
@@ -16,11 +16,11 @@ class Submission(models.Model):
         ('pending', 'ожидание'),
         ('running', 'запущен'),
         ('accepted', 'принят'),
-        ('wrong answer', 'неправильный ответ'),
-        ('time limit', 'превышен лимит времени'),
-        ('memory limit', 'превышен лимит памяти'),
-        ('runtime error', 'ошибка времени выполнения'),
-        ('compilation error', 'ошибка компиляции')
+        ('wrong_answer', 'неправильный ответ'),
+        ('time_limit', 'превышен лимит времени'),
+        ('memory_limit', 'превышен лимит памяти'),
+        ('runtime_error', 'ошибка времени выполнения'),
+        ('compilation_error', 'ошибка компиляции')
     ]
 
     language = models.CharField(choices=LANGUAGE_CHOICE, max_length=20)
@@ -28,4 +28,4 @@ class Submission(models.Model):
 
     runtime_ms = models.IntegerField(null=True)
     memory_mb = models.IntegerField(null=True)
-    push_date = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)

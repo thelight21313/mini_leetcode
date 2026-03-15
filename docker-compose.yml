@@ -34,7 +34,7 @@ services:
       context: .
     hostname: worker1
     entrypoint: celery
-    command: -A celery_app.app worker --loglevel=info
+    command: -A leet_code worker --loglevel=info
     volumes:
       - .:/app
     depends_on:
@@ -51,7 +51,7 @@ services:
       context: .
     hostname: flower
     entrypoint: celery
-    command: -A celery_app.app flower
+    command: -A leet_code flower
     volumes:
       - .:/app
     links:
@@ -74,6 +74,41 @@ services:
     depends_on:
       - django-app
 
+  judge0:
+    image: judge0/judge0:1.13.0
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    ports:
+      - "2358:2358"
+    privileged: true
+    depends_on:
+      - judge0-workers
+      - judge0-db
+      - judge0-redis
+
+  judge0-workers:
+    image: judge0/judge0:1.13.0
+    command: [ "./scripts/workers" ]
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    privileged: true
+    depends_on:
+      - judge0-db
+      - judge0-redis
+
+  judge0-db:
+    image: postgres:14.6
+    volumes:
+      - judge0_postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=judge0
+      - POSTGRES_USER=judge0
+      - POSTGRES_PASSWORD=judge0pass
+
+  judge0-redis:
+    image: redis:7.2
+
 volumes:
   static_static:
   postgres_data:
+  judge0_postgres_data:

@@ -8,3 +8,6 @@ redis==6.4.0
 gunicorn==23.0.0
 asgiref==3.11.1
 flower
+channels==4.0.0
+channels-redis==4.2.0
+daphne==4.0.0
