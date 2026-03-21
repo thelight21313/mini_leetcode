@@ -1,3 +1,4 @@
+from django.db.models import Count, Q
 from django.shortcuts import render
 from rest_framework import viewsets
 
@@ -8,9 +9,14 @@ from rest_framework.response import Response
 
 
 class ProblemViewSet(viewsets.ModelViewSet):
-    queryset = Problem.objects.all().order_by('id')
     serializer_class = ProblemSerializer
     lookup_field = 'slug'
+
+    def get_queryset(self):
+        return Problem.objects.all().order_by('id').prefetch_related('tags').annotate(
+            total=Count('submissions'),
+            accepted=Count('submissions', filter=Q(submissions__status='accepted'))
+        )
 
     def get_serializer_class(self):
         if self.action == 'retrieve':

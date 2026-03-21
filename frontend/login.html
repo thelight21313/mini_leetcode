@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Войти — CodeArena</title>
+  <link rel="icon" href="/favicon.ico"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0a0a0f;
+      --surface: #111118;
+      --surface2:#1a1a24;
+      --border:  #2a2a3a;
+      --accent:  #7c6aff;
+      --red:     #f87171;
+      --green:   #4ade80;
+      --text:    #e8e8f0;
+      --muted:   #6b6b8a;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Syne', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(124,106,255,0.12) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 400px;
+      padding: 2.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      animation: cardIn 0.4s cubic-bezier(.34,1.56,.64,1) both;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .logo {
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2rem;
+    }
+
+    .logo span { color: var(--accent); }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.35rem;
+    }
+
+    .subtitle {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+
+    .field { margin-bottom: 1rem; }
+
+    label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.7rem 1rem;
+      border-radius: 7px;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124,106,255,0.12);
+    }
+
+    input.error { border-color: var(--red); }
+
+    .error-msg {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--red);
+      margin-top: 0.35rem;
+      display: none;
+    }
+
+    .error-msg.show { display: block; }
+
+    .global-error {
+      border-radius: 7px;
+      padding: 0.7rem 1rem;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      margin-bottom: 1.25rem;
+      display: none;
+    }
+
+    .global-error.show { display: block; }
+
+    .global-error.error {
+      background: rgba(248,113,113,0.08);
+      border: 1px solid rgba(248,113,113,0.3);
+      color: var(--red);
+    }
+
+    .global-error.success {
+      background: rgba(74,222,128,0.08);
+      border: 1px solid rgba(74,222,128,0.3);
+      color: var(--green);
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.75rem;
+      border-radius: 7px;
+      font-family: var(--sans);
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      margin-top: 0.5rem;
+      letter-spacing: 0.02em;
+    }
+
+    .submit-btn:hover    { background: #6a58f0; }
+    .submit-btn:active   { transform: scale(0.98); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1.5rem 0;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .footer-link {
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .footer-link a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .footer-link a:hover { text-decoration: underline; }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <a class="logo" href="/problems.html"><span>//</span> CodeArena</a>
+
+  <h1>Войти</h1>
+  <p class="subtitle">// введи свои данные</p>
+
+  <div class="global-error" id="globalError"></div>
+
+  <div class="field">
+    <label for="username">Имя пользователя</label>
+    <input type="text" id="username" placeholder="username" autocomplete="username"/>
+    <div class="error-msg" id="usernameError"></div>
+  </div>
+
+  <div class="field">
+    <label for="password">Пароль</label>
+    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"/>
+    <div class="error-msg" id="passwordError"></div>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" onclick="handleLogin()">Войти</button>
+
+  <div class="divider">или</div>
+
+  <div class="footer-link">
+    Нет аккаунта? <a href="/register.html">Зарегистрироваться</a>
+  </div>
+</div>
+
+<script>
+  const API = '/api'
+
+  // ─── Утилиты токена ──────────────────────────────────────────────────────────
+
+  function isTokenExpired(token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      return payload.exp * 1000 < Date.now()
+    } catch {
+      return true // не можем распарсить — считаем протухшим
+    }
+  }
+
+  function clearAuth() {
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
+    localStorage.removeItem('username')
+    localStorage.removeItem('avatar_url')
+    localStorage.removeItem('user_id')
+  }
+
+  async function tryRefreshToken() {
+    const refresh = localStorage.getItem('refresh_token')
+    if (!refresh || isTokenExpired(refresh)) return null
+
+    try {
+      const res = await fetch(`${API}/token/refresh/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh })
+      })
+      if (!res.ok) return null
+      const data = await res.json()
+      if (data.access) {
+        localStorage.setItem('access_token', data.access)
+        return data.access
+      }
+      return null
+    } catch {
+      return null
+    }
+  }
+
+  // ─── Проверка при загрузке страницы ─────────────────────────────────────────
+  // Если пользователь уже залогинен — редирект без показа формы.
+  // Если токен протух — пробуем обновить через refresh.
+  // Если ничего не вышло — чистим localStorage и показываем форму.
+
+  async function checkAlreadyLoggedIn() {
+    let token = localStorage.getItem('access_token')
+
+    if (!token) return // нет токена — показываем форму
+
+    if (isTokenExpired(token)) {
+      token = await tryRefreshToken()
+      if (!token) {
+        clearAuth() // refresh тоже протух — сбрасываем всё
+        return
+      }
+    }
+
+    // токен живой — уходим
+    window.location.href = '/problems.html'
+  }
+
+  // ─── UI ──────────────────────────────────────────────────────────────────────
+
+  function setLoading(on) {
+    const btn = document.getElementById('submitBtn')
+    btn.disabled = on
+    btn.innerHTML = on ? '<span class="spinner"></span>Входим...' : 'Войти'
+  }
+
+  function clearErrors() {
+    const ge = document.getElementById('globalError')
+    ge.classList.remove('show', 'error', 'success')
+    document.getElementById('usernameError').classList.remove('show')
+    document.getElementById('passwordError').classList.remove('show')
+    document.getElementById('username').classList.remove('error')
+    document.getElementById('password').classList.remove('error')
+  }
+
+  function showGlobalError(msg, type = 'error') {
+    const el = document.getElementById('globalError')
+    el.textContent = msg
+    el.className = `global-error show ${type}`
+  }
+
+  // ─── Логин ───────────────────────────────────────────────────────────────────
+
+  async function handleLogin() {
+    clearErrors()
+
+    const username = document.getElementById('username').value.trim()
+    const password = document.getElementById('password').value
+
+    if (!username || !password) {
+      if (!username) {
+        document.getElementById('usernameError').textContent = 'Введи имя пользователя'
+        document.getElementById('usernameError').classList.add('show')
+        document.getElementById('username').classList.add('error')
+      }
+      if (!password) {
+        document.getElementById('passwordError').textContent = 'Введи пароль'
+        document.getElementById('passwordError').classList.add('show')
+        document.getElementById('password').classList.add('error')
+      }
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      // Шаг 1: получаем JWT через /api/token/
+      const res = await fetch(`${API}/token/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        const msg = data.detail || data.non_field_errors?.[0] || 'Неверный логин или пароль'
+        showGlobalError(msg)
+        return
+      }
+
+      const accessToken  = data.access
+      const refreshToken = data.refresh
+
+      if (!accessToken) {
+        showGlobalError('Сервер не вернул токен — проверь настройки бэкенда')
+        return
+      }
+
+      // Шаг 2: сохраняем токены (сначала чистим старые)
+      clearAuth()
+      localStorage.setItem('access_token',  accessToken)
+      if (refreshToken) localStorage.setItem('refresh_token', refreshToken)
+
+      // Шаг 3: пробуем подтянуть профиль (не блокирует вход при ошибке)
+      await fetchUserInfo(accessToken)
+
+      // Шаг 4: редирект
+      showGlobalError('Вход выполнен! Переходим...', 'success')
+      setTimeout(() => { window.location.href = '/problems.html' }, 600)
+
+    } catch (err) {
+      showGlobalError('Нет связи с сервером')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ─── Данные пользователя ─────────────────────────────────────────────────────
+
+  async function fetchUserInfo(token) {
+    // Пробуем /api/users/me/ (твой эндпоинт), фолбэк на /api/auth/user/ (dj-rest-auth)
+    const endpoints = [`${API}/users/me/`, `${API}/auth/user/`]
+
+    for (const url of endpoints) {
+      try {
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        if (!res.ok) continue
+
+        const user = await res.json()
+        if (user.username) localStorage.setItem('username', user.username)
+        if (user.avatar)   localStorage.setItem('avatar_url', user.avatar)
+        if (user.id)       localStorage.setItem('user_id', String(user.id))
+        return
+      } catch {
+        continue
+      }
+    }
+    // Оба эндпоинта не сработали — не критично, токены уже сохранены
+    console.warn('fetchUserInfo: не удалось получить профиль, продолжаем без него')
+  }
+
+  // ─── Enter для сабмита ───────────────────────────────────────────────────────
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleLogin()
+  })
+
+  // ─── Старт ───────────────────────────────────────────────────────────────────
+
+  checkAlreadyLoggedIn()
+</script>
+</body>
+</html>

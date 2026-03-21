@@ -796,6 +796,17 @@ function authHeaders() {
   return token ? { 'Authorization': `Bearer ${token}` } : {}
 }
 
+// Вызывается при 401 — токен протух, очищаем и редиректим
+function handleAuthError() {
+  localStorage.removeItem('access_token')
+  localStorage.removeItem('refresh_token')
+  localStorage.removeItem('username')
+  localStorage.removeItem('avatar_url')
+  localStorage.removeItem('user_id')
+  showToast('Сессия истекла, войди снова')
+  setTimeout(() => { window.location.href = '/login.html' }, 1200)
+}
+
 // ── Toast ──
 function showToast(msg) {
   const t = document.getElementById('toast')
@@ -887,7 +898,10 @@ async function loadProblems() {
   try {
     const res = await fetch(`${API}/problems/?${params}`, { headers: authHeaders() })
 
-    if (!res.ok) { showError('Ошибка загрузки задач', res.status); return }
+    if (!res.ok) {
+      if (res.status === 401) { handleAuthError(); return }
+      showError('Ошибка загрузки задач', res.status); return
+    }
 
     // DRF pagination: { count, next, previous, results: [...] }
     const data = await res.json()
@@ -1064,6 +1078,9 @@ document.getElementById('langSelect').addEventListener('change', e => {
 })
 
 // ── Открыть задачу ──
+let currentProblemId = null   // числовой ID для сабмишна
+let currentSlug = null        // slug для сабмишна
+
 async function openProblem(slug) {
   document.getElementById('view-problems').style.display = 'none'
   document.getElementById('view-problem').style.display = 'block'
@@ -1082,8 +1099,13 @@ async function openProblem(slug) {
 
   try {
     const res = await fetch(`${API}/problems/${slug}/`, { headers: authHeaders() })
-    if (!res.ok) { showToast('Задача не найдена'); goBack(); return }
+    if (!res.ok) {
+      if (res.status === 401) { handleAuthError(); return }
+      showToast('Задача не найдена'); goBack(); return
+    }
     const p = await res.json()
+    currentProblemId = p.id   // сохраняем числовой ID
+    currentSlug = p.slug      // сохраняем slug для сабмишна
     renderProblem(p)
   } catch {
     showToast('Ошибка загрузки задачи')
@@ -1171,13 +1193,14 @@ async function handleSubmit() {
   document.getElementById('resultBody').innerHTML = ''
 
   try {
-    const res = await fetch(`${API}/submissions/`, {
+    const res = await fetch(`${API}/submission/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify({ problem_slug: slug, code, language: lang })
+      body: JSON.stringify({ problem_slug: currentSlug, code, language: lang })
     })
 
     if (!res.ok) {
+      if (res.status === 401) { handleAuthError(); return }
       const err = await res.json().catch(() => ({}))
       showToast(err.detail || 'Ошибка отправки')
       resetSubmitBtn()
@@ -1185,10 +1208,7 @@ async function handleSubmit() {
     }
 
     const submission = await res.json()
-    // submission.id используем для WebSocket — подключишь позже
-    // TODO: ws = new WebSocket(`/ws/submissions/${submission.id}/`)
-    // пока просто поллинг каждые 1.5с
-    pollSubmission(submission.id)
+    waitForResult(submission.id)
 
   } catch {
     showToast('Нет связи с сервером')
@@ -1196,32 +1216,39 @@ async function handleSubmit() {
   }
 }
 
-async function pollSubmission(id) {
-  const maxAttempts = 20
-  let attempts = 0
+function waitForResult(id) {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws'
+  const token = localStorage.getItem('access_token')
+  const ws = new WebSocket(`${proto}://${location.host}/ws/submissions/${id}/?token=${token}`)
 
-  const interval = setInterval(async () => {
-    attempts++
-    try {
-      const res = await fetch(`${API}/submissions/${id}/`, { headers: authHeaders() })
-      if (!res.ok) { clearInterval(interval); resetSubmitBtn(); return }
-      const s = await res.json()
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data)
 
-      if (s.status === 'pending' || s.status === 'running') {
-        document.getElementById('resultStatus').textContent = `● ${s.status === 'running' ? 'Запущен...' : 'Ожидание...'}`
-        if (attempts >= maxAttempts) { clearInterval(interval); resetSubmitBtn(); showToast('Превышено время ожидания') }
-        return
-      }
+    if (data.status === 'pending' || data.status === 'running') {
+      document.getElementById('resultStatus').textContent =
+        data.status === 'running' ? '● Запущен...' : '● Ожидание...'
+      return
+    }
 
-      clearInterval(interval)
-      showResult(s)
-      resetSubmitBtn()
+    // финальный статус — показываем результат
+    showResult(data)
+    resetSubmitBtn()
+    ws.close()
+  }
 
-    } catch {
-      clearInterval(interval)
+  ws.onerror = () => {
+    showToast('Ошибка WebSocket соединения')
+    resetSubmitBtn()
+    ws.close()
+  }
+
+  ws.onclose = (event) => {
+    // 1000 — нормальное закрытие, остальное — неожиданный обрыв
+    if (event.code !== 1000) {
+      showToast('Соединение прервано')
       resetSubmitBtn()
     }
-  }, 1500)
+  }
 }
 
 function showResult(s) {

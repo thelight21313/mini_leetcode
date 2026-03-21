@@ -21,17 +21,17 @@ class ProblemSerializer(serializers.ModelSerializer):
         fields = ['id', 'slug', 'title', 'difficulty', 'tags', 'solved_percent', 'user_status']
 
     def get_solved_percent(self, obj):
-        total = Submission.objects.filter(task=obj).count()
+        total = getattr(obj, 'total', 0)
         if total == 0:
             return 0
-        solved = Submission.objects.filter(task=obj, status='accepted').count()
+        solved = getattr(obj, 'accepted', 0)
         return solved/total
 
     def get_user_status(self, obj):
         request = self.context.get('request')
         if not request or not request.user.is_authenticated:
             return None
-        submission = Submission.objects.filter(user=request.user, task=obj).order_by('-push_date').first()
+        submission = Submission.objects.filter(user=request.user, problem=obj).order_by('-created_at').first()
         if not submission:  # ← эта проверка обязательна
             return None
         if submission.status == 'accepted':
@@ -42,6 +42,7 @@ class ProblemSerializer(serializers.ModelSerializer):
 class TestCaseSerializer(serializers.ModelSerializer):
     input = serializers.CharField(source='input_data')
     output = serializers.CharField(source='output_data')
+
     class Meta:
         model = TestCase
         fields = ['input', 'output', 'explanation']
@@ -52,7 +53,7 @@ class DetailProblemSerializer(ProblemSerializer):
     last_submission_code = serializers.SerializerMethodField()
 
     def get_last_submission_code(self, obj):
-        last_submission = Submission.objects.filter(task=obj).order_by('-push_date').first()
+        last_submission = Submission.objects.filter(problem=obj).order_by('-created_at').first()
         if last_submission:
             return last_submission.code
         return None
