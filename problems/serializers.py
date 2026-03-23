@@ -28,13 +28,10 @@ class ProblemSerializer(serializers.ModelSerializer):
         return solved/total
 
     def get_user_status(self, obj):
-        request = self.context.get('request')
-        if not request or not request.user.is_authenticated:
+        status = getattr(obj, 'last_status', None)
+        if not status:
             return None
-        submission = Submission.objects.filter(user=request.user, problem=obj).order_by('-created_at').first()
-        if not submission:  # ← эта проверка обязательна
-            return None
-        if submission.status == 'accepted':
+        if status == 'accepted':
             return 'accepted'
         return 'attempted'
 
@@ -53,7 +50,10 @@ class DetailProblemSerializer(ProblemSerializer):
     last_submission_code = serializers.SerializerMethodField()
 
     def get_last_submission_code(self, obj):
-        last_submission = Submission.objects.filter(problem=obj).order_by('-created_at').first()
+        request = self.context.get['request']
+        if not request:
+            return None
+        last_submission = Submission.objects.filter(problem=obj, user=request.user).order_by('-created_at').first()
         if last_submission:
             return last_submission.code
         return None
