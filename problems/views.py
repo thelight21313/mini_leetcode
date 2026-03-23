@@ -1,6 +1,7 @@
 from django.db.models import Count, Q, Subquery, OuterRef
 from django.shortcuts import render
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 
 from problems.models import Problem, Tag
 from problems.serializers import TagSerializer, ProblemSerializer, DetailProblemSerializer
@@ -13,6 +14,7 @@ from submissions.models import Submission
 class ProblemViewSet(viewsets.ModelViewSet):
     serializer_class = ProblemSerializer
     lookup_field = 'slug'
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         qs = Problem.objects.all().order_by('id').prefetch_related('tags').annotate(
