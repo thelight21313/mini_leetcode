@@ -28,6 +28,8 @@ services:
   redis:
     image: redis:7.2
     hostname: redis
+    volumes:
+      -redis_data:/data
 
   worker:
     build:
@@ -113,3 +115,4 @@ volumes:
   static_static:
   postgres_data:
   judge0_postgres_data:
+  redis_data:

@@ -2,7 +2,7 @@ from celery import shared_task
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import requests
-
+from submissions.services import update_leaderboard
 from problems.models import TestCase
 
 from submissions.models import Submission
@@ -21,6 +21,10 @@ def notify_submission(submission):
             }
         }
     )
+    if submission.contest:
+        user = submission.user
+        con = submission.contest_id
+        update_leaderboard(user, con)
 
 
 def _get_language_id(language):
@@ -82,6 +86,12 @@ def check_submission(submission_id):
     submission.status = 'running'
     submission.save()
     notify_submission(submission)
+
+    if not test_cases.exists():
+        submission.status = 'wrong_answer'
+        submission.save()
+        notify_submission(submission)
+        return
 
     for test_case in test_cases:
 

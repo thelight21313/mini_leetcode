@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Контесты — CodeArena</title>
+  <link rel="icon" href="/favicon.ico"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0a0a0f;
+      --surface:  #111118;
+      --surface2: #1a1a24;
+      --border:   #2a2a3a;
+      --accent:   #7c6aff;
+      --accent2:  #ff6a6a;
+      --green:    #4ade80;
+      --yellow:   #fbbf24;
+      --red:      #f87171;
+      --blue:     #60a5fa;
+      --text:     #e8e8f0;
+      --muted:    #6b6b8a;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Syne', sans-serif;
+    }
+
+    body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; overflow-x:hidden; }
+
+    body::before {
+      content:''; position:fixed; inset:0;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events:none; z-index:0;
+    }
+
+    /* NAV */
+    nav { position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:0 2rem; height:56px; background:rgba(10,10,15,0.88); backdrop-filter:blur(14px); border-bottom:1px solid var(--border); }
+    .nav-logo { font-weight:800; font-size:1.1rem; letter-spacing:-0.02em; color:var(--text); text-decoration:none; display:flex; align-items:center; gap:6px; }
+    .nav-logo span { color:var(--accent); }
+    .nav-links { display:flex; gap:1.5rem; list-style:none; }
+    .nav-links a { color:var(--muted); text-decoration:none; font-size:0.8rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; transition:color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color:var(--text); }
+    .nav-right { display:flex; align-items:center; gap:0.75rem; }
+    .nav-user { display:flex; align-items:center; gap:0.5rem; text-decoration:none; color:var(--text); }
+    .nav-avatar { width:30px; height:30px; border-radius:50%; object-fit:cover; }
+    .nav-avatar--initials { background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; flex-shrink:0; }
+    .nav-username { font-family:var(--mono); font-size:0.8rem; color:var(--muted); }
+    .nav-logout { background:none; border:1px solid var(--border); color:var(--muted); padding:0.3rem 0.75rem; border-radius:5px; font-family:var(--mono); font-size:0.75rem; cursor:pointer; transition:all 0.2s; }
+    .nav-logout:hover { border-color:var(--red); color:var(--red); }
+    .btn-nav-login { color:var(--muted); text-decoration:none; font-size:0.8rem; font-weight:600; transition:color 0.2s; }
+    .btn-nav-login:hover { color:var(--text); }
+    .btn-nav-register { background:var(--accent); color:#fff; text-decoration:none; padding:0.35rem 0.9rem; border-radius:5px; font-size:0.8rem; font-weight:700; transition:background 0.2s; }
+    .btn-nav-register:hover { background:#6a58f0; }
+
+    /* VIEWS */
+    #view-contests, #view-contest, #view-problem { position:relative; z-index:1; }
+    #view-contest { display:none; }
+    #view-problem { display:none; }
+
+    /* CONTESTS LIST */
+    .contests-header { padding:3rem 2rem 2rem; max-width:1100px; margin:0 auto; }
+    .contests-title { font-size:2.5rem; font-weight:800; letter-spacing:-0.04em; line-height:1; margin-bottom:0.4rem; }
+    .contests-title span { color:var(--accent); }
+    .contests-sub { color:var(--muted); font-family:var(--mono); font-size:0.8rem; }
+
+    .tabs { max-width:1100px; margin:0 auto; padding:0 2rem 1.5rem; display:flex; gap:0.4rem; }
+    .tab-btn { background:var(--surface); border:1px solid var(--border); color:var(--muted); padding:0.5rem 1.2rem; border-radius:6px; font-family:var(--mono); font-size:0.78rem; cursor:pointer; transition:all 0.18s; }
+    .tab-btn:hover { border-color:var(--accent); color:var(--text); }
+    .tab-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+    .contests-wrap { max-width:1100px; margin:0 auto; padding:0 2rem 4rem; display:flex; flex-direction:column; gap:0.75rem; }
+
+    .contest-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1.25rem 1.5rem; cursor:pointer; transition:border-color 0.18s,background 0.18s; display:grid; grid-template-columns:1fr auto; gap:0.5rem 2rem; align-items:center; animation:rowIn 0.2s ease both; }
+    .contest-card:hover { border-color:var(--accent); background:var(--surface2); }
+    .contest-card.active-contest { border-color:rgba(124,106,255,0.4); }
+    .contest-card-left { display:flex; flex-direction:column; gap:0.5rem; }
+    .contest-card-top { display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; }
+    .contest-card-name { font-size:1rem; font-weight:700; letter-spacing:-0.01em; }
+    .contest-badge { font-family:var(--mono); font-size:0.67rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:0.18rem 0.55rem; border-radius:4px; }
+    .badge-active   { background:rgba(74,222,128,0.12); color:var(--green); border:1px solid rgba(74,222,128,0.3); }
+    .badge-upcoming { background:rgba(96,165,250,0.12); color:var(--blue);  border:1px solid rgba(96,165,250,0.3); }
+    .badge-finished { background:rgba(107,107,138,0.12); color:var(--muted); border:1px solid var(--border); }
+    .contest-card-meta { display:flex; gap:1.5rem; font-family:var(--mono); font-size:0.73rem; color:var(--muted); flex-wrap:wrap; }
+    .contest-card-meta span { display:flex; align-items:center; gap:0.35rem; }
+    .contest-card-right { display:flex; flex-direction:column; align-items:flex-end; gap:0.4rem; }
+    .contest-timer { font-family:var(--mono); font-size:0.85rem; font-weight:700; color:var(--text); }
+    .contest-timer.ending { color:var(--yellow); }
+    .contest-timer.soon { color:var(--blue); }
+    .contest-participants { font-family:var(--mono); font-size:0.72rem; color:var(--muted); }
+
+    /* CONTEST PAGE */
+    .back-btn { display:inline-flex; align-items:center; gap:6px; color:var(--muted); font-family:var(--mono); font-size:0.78rem; cursor:pointer; border:none; background:none; padding:0; transition:color 0.2s; }
+    .back-btn:hover { color:var(--text); }
+    .contest-page { max-width:1100px; margin:0 auto; padding:2rem; }
+    .contest-page-header { margin-bottom:2rem; padding-bottom:2rem; border-bottom:1px solid var(--border); }
+    .contest-page-top { display:flex; align-items:flex-start; justify-content:space-between; gap:2rem; flex-wrap:wrap; margin-bottom:1rem; }
+    .contest-page-name { font-size:2rem; font-weight:800; letter-spacing:-0.03em; line-height:1.1; }
+    .contest-page-meta { display:flex; gap:1.5rem; font-family:var(--mono); font-size:0.75rem; color:var(--muted); flex-wrap:wrap; margin-top:0.75rem; }
+    .contest-page-meta span { display:flex; align-items:center; gap:0.4rem; }
+    .contest-countdown { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:0.75rem 1.25rem; font-family:var(--mono); font-size:0.8rem; color:var(--muted); text-align:center; flex-shrink:0; }
+    .countdown-value { font-size:1.5rem; font-weight:700; color:var(--text); display:block; margin-top:0.25rem; letter-spacing:0.04em; }
+    .countdown-value.ending { color:var(--yellow); }
+    .countdown-value.over { color:var(--muted); }
+    .contest-tabs { display:flex; border-bottom:1px solid var(--border); margin-bottom:1.5rem; }
+    .contest-tab { background:none; border:none; border-bottom:2px solid transparent; color:var(--muted); padding:0.6rem 1.25rem; font-family:var(--mono); font-size:0.78rem; cursor:pointer; transition:all 0.18s; margin-bottom:-1px; }
+    .contest-tab:hover { color:var(--text); }
+    .contest-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+    .contest-problems { display:none; }
+    .contest-problems.show { display:block; }
+    .contest-leaderboard { display:none; }
+    .contest-leaderboard.show { display:block; }
+
+    /* PROBLEM VIEW */
+    .problem-layout { display:grid; grid-template-columns:1fr 1fr; height:calc(100vh - 56px); }
+    .problem-left { border-right:1px solid var(--border); overflow-y:auto; padding:2rem; }
+    .problem-left::-webkit-scrollbar { width:4px; }
+    .problem-left::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+    .problem-num { font-family:var(--mono); font-size:0.73rem; color:var(--muted); margin-bottom:0.35rem; }
+    .problem-name { font-size:1.55rem; font-weight:800; letter-spacing:-0.03em; margin-bottom:1rem; line-height:1.2; }
+    .problem-meta { display:flex; gap:0.65rem; align-items:center; flex-wrap:wrap; margin-bottom:1.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--border); }
+    .problem-body { font-size:0.88rem; line-height:1.75; color:#c4c4d4; }
+    .problem-body h3 { font-size:0.78rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin:1.5rem 0 0.6rem; }
+    .example-block { background:var(--surface); border:1px solid var(--border); border-left:2px solid var(--accent); border-radius:0 6px 6px 0; padding:0.9rem 1rem; margin:0.4rem 0 1rem; font-family:var(--mono); font-size:0.8rem; }
+    .example-label { font-size:0.67rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:0.3rem; }
+    .example-val { color:var(--text); }
+    .constraints-list { list-style:none; display:flex; flex-direction:column; gap:0.35rem; }
+    .constraints-list li { font-family:var(--mono); font-size:0.78rem; color:var(--muted); display:flex; align-items:baseline; gap:0.5rem; }
+    .constraints-list li::before { content:'—'; color:var(--border); flex-shrink:0; }
+
+    /* contest banner inside problem */
+    .contest-banner { background:rgba(124,106,255,0.08); border:1px solid rgba(124,106,255,0.25); border-radius:6px; padding:0.6rem 1rem; font-family:var(--mono); font-size:0.75rem; color:var(--accent); margin-bottom:1.25rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+    .contest-banner-timer { font-weight:700; white-space:nowrap; }
+
+    .problem-right { display:flex; flex-direction:column; overflow:hidden; }
+    .editor-toolbar { display:flex; align-items:center; justify-content:space-between; padding:0.65rem 1.25rem; border-bottom:1px solid var(--border); background:var(--surface); flex-shrink:0; }
+    .lang-select { background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:0.3rem 0.7rem; border-radius:5px; font-family:var(--mono); font-size:0.8rem; outline:none; cursor:pointer; }
+    .editor-actions { display:flex; gap:0.5rem; }
+    .btn { padding:0.38rem 0.9rem; border-radius:5px; font-family:var(--sans); font-size:0.78rem; font-weight:700; cursor:pointer; border:none; transition:all 0.18s; }
+    .btn-ghost { background:transparent; border:1px solid var(--border); color:var(--muted); }
+    .btn-ghost:hover { border-color:var(--accent); color:var(--text); }
+    .btn-primary { background:var(--accent); color:#fff; }
+    .btn-primary:hover { background:#6a58f0; }
+    .btn-primary:disabled { opacity:0.45; cursor:not-allowed; }
+    #monacoContainer { flex:1; overflow:hidden; }
+    .result-panel { border-top:1px solid var(--border); background:var(--surface); flex-shrink:0; max-height:200px; overflow-y:auto; transition:max-height 0.3s ease; }
+    .result-panel.hidden { max-height:0; overflow:hidden; }
+    .result-header { display:flex; align-items:center; justify-content:space-between; padding:0.65rem 1.25rem; border-bottom:1px solid var(--border); }
+    .result-title { font-family:var(--mono); font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); }
+    .result-status { font-family:var(--mono); font-size:0.8rem; font-weight:700; }
+    .result-status.accepted { color:var(--green); }
+    .result-status.wrong { color:var(--red); }
+    .result-status.pending { color:var(--yellow); animation:pulse 1s infinite; }
+    .result-body { padding:0.65rem 1.25rem; font-family:var(--mono); font-size:0.78rem; line-height:1.7; }
+    .result-row { display:flex; gap:2rem; }
+    .result-row span:first-child { color:var(--muted); min-width:80px; }
+    .result-row span:last-child { color:var(--text); }
+
+    /* shared table */
+    table { width:100%; border-collapse:collapse; }
+    thead tr { border-bottom:1px solid var(--border); }
+    th { text-align:left; padding:0.6rem 1rem; font-family:var(--mono); font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); font-weight:500; user-select:none; }
+    tbody tr { border-bottom:1px solid rgba(42,42,58,0.5); transition:background 0.12s; animation:rowIn 0.2s ease both; }
+    tbody tr.clickable { cursor:pointer; }
+    tbody tr.clickable:hover { background:var(--surface); }
+    td { padding:0.85rem 1rem; font-size:0.88rem; }
+    .td-num { font-family:var(--mono); font-size:0.73rem; color:var(--muted); width:56px; }
+    .td-title { font-weight:600; }
+    .diff { font-family:var(--mono); font-size:0.73rem; font-weight:700; letter-spacing:0.04em; padding:0.18rem 0.55rem; border-radius:4px; }
+    .diff.easy   { color:var(--green);  background:rgba(74,222,128,0.08); }
+    .diff.medium { color:var(--yellow); background:rgba(251,191,36,0.08); }
+    .diff.hard   { color:var(--red);    background:rgba(248,113,113,0.08); }
+    .status-dot { width:7px; height:7px; border-radius:50%; display:inline-block; }
+    .status-dot.accepted  { background:var(--green);  box-shadow:0 0 5px var(--green); }
+    .status-dot.attempted { background:var(--yellow); box-shadow:0 0 5px var(--yellow); }
+    .status-dot.none      { background:var(--border); }
+    .tag { display:inline-block; background:var(--surface2); border:1px solid var(--border); color:var(--muted); padding:0.12rem 0.45rem; border-radius:4px; font-family:var(--mono); font-size:0.68rem; margin-right:3px; }
+
+    .lb-rank { font-family:var(--mono); font-size:0.78rem; font-weight:700; width:56px; }
+    .lb-rank-1 { color:#fbbf24; }
+    .lb-rank-2 { color:#94a3b8; }
+    .lb-rank-3 { color:#c97c4a; }
+    .lb-user { display:flex; align-items:center; gap:0.6rem; }
+    .lb-avatar { width:26px; height:26px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:700; flex-shrink:0; }
+    .lb-username { font-weight:600; font-size:0.85rem; }
+    .lb-score { font-family:var(--mono); font-size:0.85rem; font-weight:700; color:var(--accent); text-align:right; }
+    .lb-solved { font-family:var(--mono); font-size:0.78rem; color:var(--muted); text-align:right; }
+    .lb-me td { background:rgba(124,106,255,0.06); }
+
+    /* register */
+    .register-block { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:2rem; text-align:center; margin-bottom:1.5rem; }
+    .register-block p { font-family:var(--mono); font-size:0.82rem; color:var(--muted); margin-bottom:1.25rem; line-height:1.7; }
+    .btn-register { background:var(--accent); color:#fff; border:none; padding:0.65rem 2rem; border-radius:7px; font-family:var(--sans); font-size:0.88rem; font-weight:700; cursor:pointer; transition:background 0.2s; }
+    .btn-register:hover { background:#6a58f0; }
+    .btn-register:disabled { opacity:0.5; cursor:not-allowed; }
+    .btn-registered { background:rgba(74,222,128,0.12); color:var(--green); border:1px solid rgba(74,222,128,0.3); padding:0.5rem 1.25rem; border-radius:7px; font-family:var(--mono); font-size:0.78rem; font-weight:700; cursor:default; }
+    .locked-notice { text-align:center; padding:3rem 2rem; color:var(--muted); font-family:var(--mono); font-size:0.82rem; line-height:2; }
+    .locked-notice .lock-icon { font-size:2rem; margin-bottom:0.75rem; }
+
+    .skeleton { background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:4px; height:13px; display:inline-block; }
+    .skeleton-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1.25rem 1.5rem; display:flex; flex-direction:column; gap:0.6rem; }
+    .state-box { text-align:center; padding:4rem 2rem; color:var(--muted); font-family:var(--mono); font-size:0.85rem; line-height:2; }
+    .state-box .state-icon { font-size:2.5rem; margin-bottom:1rem; }
+    .toast { position:fixed; bottom:2rem; right:2rem; background:var(--surface2); border:1px solid var(--border); padding:0.7rem 1.2rem; border-radius:8px; font-family:var(--mono); font-size:0.8rem; color:var(--text); z-index:999; transform:translateY(80px); opacity:0; transition:all 0.28s cubic-bezier(.34,1.56,.64,1); pointer-events:none; }
+    .toast.show { transform:translateY(0); opacity:1; }
+
+    @keyframes rowIn   { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  </style>
+</head>
+<body data-page="contests">
+
+<div id="navbar-mount"></div>
+
+<!-- VIEW 1 — СПИСОК -->
+<div id="view-contests">
+  <div class="contests-header">
+    <h1 class="contests-title">Контесты<span>.</span></h1>
+    <p class="contests-sub" id="contestsMeta">// загрузка...</p>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="all">Все</button>
+    <button class="tab-btn" data-tab="active">Идут сейчас</button>
+    <button class="tab-btn" data-tab="upcoming">Предстоящие</button>
+    <button class="tab-btn" data-tab="finished">Завершённые</button>
+  </div>
+  <div class="contests-wrap" id="contestsWrap">
+    <div class="skeleton-card"><div class="skeleton" style="width:40%"></div><div class="skeleton" style="width:65%"></div></div>
+    <div class="skeleton-card"><div class="skeleton" style="width:50%"></div><div class="skeleton" style="width:55%"></div></div>
+    <div class="skeleton-card"><div class="skeleton" style="width:35%"></div><div class="skeleton" style="width:70%"></div></div>
+  </div>
+</div>
+
+<!-- VIEW 2 — СТРАНИЦА КОНТЕСТА -->
+<div id="view-contest">
+  <div class="contest-page">
+    <button class="back-btn" id="backBtn" style="margin-bottom:1.5rem">← к контестам</button>
+    <div class="contest-page-header">
+      <div class="contest-page-top">
+        <div>
+          <div id="contestBadge" style="margin-bottom:0.5rem"></div>
+          <h2 class="contest-page-name" id="contestName">
+            <span class="skeleton" style="width:320px;height:1.6rem;display:inline-block"></span>
+          </h2>
+          <div class="contest-page-meta" id="contestPageMeta"></div>
+        </div>
+        <div class="contest-countdown" id="contestCountdown" style="display:none">
+          <span id="countdownLabel">До конца</span>
+          <span class="countdown-value" id="countdownValue">--:--:--</span>
+        </div>
+      </div>
+    </div>
+    <!-- блок регистрации — показывается только для upcoming/active незарегистрированным -->
+    <div class="register-block" id="registerBlock" style="display:none">
+      <p id="registerText"></p>
+      <button class="btn-register" id="registerBtn" onclick="handleRegister()">Зарегистрироваться</button>
+    </div>
+
+    <div class="contest-tabs">
+      <button class="contest-tab active" data-ctab="problems">Задачи</button>
+      <button class="contest-tab" data-ctab="leaderboard">Лидерборд</button>
+    </div>
+    <div class="contest-problems show" id="panelProblems">
+      <table>
+        <thead><tr>
+          <th style="width:36px"></th>
+          <th class="td-num">#</th>
+          <th>Название</th>
+          <th style="width:96px">Сложность</th>
+          <th style="width:80px;text-align:right">Решили</th>
+        </tr></thead>
+        <tbody id="contestProblemsBody">
+          <tr><td colspan="5" style="padding:1rem"><div class="skeleton" style="width:100%"></div></td></tr>
+          <tr><td colspan="5" style="padding:1rem"><div class="skeleton" style="width:80%"></div></td></tr>
+          <tr><td colspan="5" style="padding:1rem"><div class="skeleton" style="width:65%"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="contest-leaderboard" id="panelLeaderboard">
+      <table>
+        <thead><tr>
+          <th class="lb-rank">#</th>
+          <th>Участник</th>
+          <th style="text-align:right">Решено</th>
+          <th style="text-align:right">Очки</th>
+        </tr></thead>
+        <tbody id="leaderboardBody">
+          <tr><td colspan="4" style="padding:1rem"><div class="skeleton" style="width:100%"></div></td></tr>
+          <tr><td colspan="4" style="padding:1rem"><div class="skeleton" style="width:75%"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW 3 — ЗАДАЧА ВНУТРИ КОНТЕСТА -->
+<div id="view-problem">
+  <div class="problem-layout">
+    <div class="problem-left">
+      <button class="back-btn" id="backToProblemsList" style="margin-bottom:1.25rem">← к задачам контеста</button>
+      <div class="contest-banner" id="problemContestBanner">
+        <span id="problemContestName"></span>
+        <span class="contest-banner-timer" id="problemContestTimer"></span>
+      </div>
+      <div class="problem-num" id="problemNum"></div>
+      <h2 class="problem-name" id="problemName">
+        <span class="skeleton" style="width:60%;height:1.4rem;display:inline-block"></span>
+      </h2>
+      <div class="problem-meta" id="problemMeta"></div>
+      <div class="problem-body" id="problemBody">
+        <div class="skeleton" style="width:100%;margin-bottom:.75rem"></div>
+        <div class="skeleton" style="width:88%;margin-bottom:.75rem"></div>
+        <div class="skeleton" style="width:72%"></div>
+      </div>
+    </div>
+    <div class="problem-right">
+      <div class="editor-toolbar">
+        <select class="lang-select" id="langSelect">
+          <option value="python">Python 3</option>
+          <option value="javascript">JavaScript</option>
+          <option value="go">Go</option>
+          <option value="cpp">C++</option>
+        </select>
+        <div class="editor-actions">
+          <button class="btn btn-ghost" id="runBtn">▶ Запустить</button>
+          <button class="btn btn-primary" id="submitBtn">Отправить →</button>
+        </div>
+      </div>
+      <div id="monacoContainer"></div>
+      <div class="result-panel hidden" id="resultPanel">
+        <div class="result-header">
+          <span class="result-title">Результат</span>
+          <span class="result-status" id="resultStatus"></span>
+        </div>
+        <div class="result-body" id="resultBody"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+<script>
+const API = '/api'
+
+function authHeaders() {
+  const token = localStorage.getItem('access_token')
+  return token ? { 'Authorization': `Bearer ${token}` } : {}
+}
+
+function handleAuthError() {
+  ['access_token','refresh_token','username','avatar_url','user_id'].forEach(k => localStorage.removeItem(k))
+  showToast('Сессия истекла, войди снова')
+  setTimeout(() => { window.location.href = '/login.html' }, 1200)
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast')
+  t.textContent = msg; t.classList.add('show')
+  clearTimeout(t._tid); t._tid = setTimeout(() => t.classList.remove('show'), 2800)
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+async function loadNavbar() {
+  try {
+    const res = await fetch('/navbar.html')
+    document.getElementById('navbar-mount').innerHTML = await res.text()
+  } catch {
+    document.getElementById('navbar-mount').innerHTML =
+      `<nav><a class="nav-logo" href="/"><span>//</span> CodeArena</a></nav>`
+  }
+}
+
+function diffLabel(d) {
+  const map = { easy:'Easy', medium:'Medium', hard:'Hard' }
+  return `<span class="diff ${d}">${map[d] ?? d}</span>`
+}
+
+function statusDot(s) { return `<span class="status-dot ${s ?? 'none'}"></span>` }
+
+function contestStatus(c) {
+  const now = Date.now()
+  const start = new Date(c.start_time).getTime()
+  const end   = new Date(c.end_time).getTime()
+  if (now < start) return 'upcoming'
+  if (now > end)   return 'finished'
+  return 'active'
+}
+
+function badgeHtml(status) {
+  const map = { active:['badge-active','● Идёт сейчас'], upcoming:['badge-upcoming','◷ Скоро'], finished:['badge-finished','✓ Завершён'] }
+  const [cls, label] = map[status] ?? ['badge-finished', status]
+  return `<span class="contest-badge ${cls}">${label}</span>`
+}
+
+function formatDuration(ms) {
+  if (ms <= 0) return '00:00:00'
+  const h = Math.floor(ms / 3600000)
+  const m = Math.floor((ms % 3600000) / 60000)
+  const s = Math.floor((ms % 60000) / 1000)
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+}
+
+function formatDate(iso) {
+  return new Date(iso).toLocaleString('ru-RU', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+}
+
+function formatDurationHuman(start, end) {
+  const ms = new Date(end) - new Date(start)
+  const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000)
+  if (h === 0) return `${m} мин`
+  if (m === 0) return `${h} ч`
+  return `${h} ч ${m} мин`
+}
+
+// ── СПИСОК КОНТЕСТОВ ──
+let currentTab = 'all'
+let allContests = []
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
+    btn.classList.add('active')
+    currentTab = btn.dataset.tab
+    renderContestsList()
+  })
+})
+
+async function loadContests() {
+  try {
+    const res = await fetch(`${API}/contests/`, { headers: authHeaders() })
+    if (!res.ok) { if (res.status === 401) { handleAuthError(); return } showContestsError('Ошибка загрузки', res.status); return }
+    const data = await res.json()
+    allContests = Array.isArray(data) ? data : (data.results ?? [])
+    renderContestsList()
+  } catch { showContestsError('Нет связи с сервером') }
+}
+
+function renderContestsList() {
+  const filtered = currentTab === 'all' ? allContests : allContests.filter(c => contestStatus(c) === currentTab)
+  document.getElementById('contestsMeta').textContent = `// всего контестов: ${allContests.length}`
+  const wrap = document.getElementById('contestsWrap')
+  if (!filtered.length) { wrap.innerHTML = `<div class="state-box"><div class="state-icon">∅</div>Контестов не найдено</div>`; return }
+
+  wrap.innerHTML = filtered.map((c, i) => {
+    const status = contestStatus(c)
+    const end = new Date(c.end_time).getTime(), start = new Date(c.start_time).getTime()
+    let timerHtml = ''
+    if (status === 'active') {
+      const left = end - Date.now()
+      timerHtml = `<div class="contest-timer ${left < 30*60*1000 ? 'ending':''}" data-end="${c.end_time}">${formatDuration(left)}</div>`
+    } else if (status === 'upcoming') {
+      timerHtml = `<div class="contest-timer soon" data-start="${c.start_time}">через ${formatDuration(start - Date.now())}</div>`
+    }
+    return `
+    <div class="contest-card ${status==='active'?'active-contest':''}" style="animation-delay:${i*40}ms" onclick="openContest(${c.id})">
+      <div class="contest-card-left">
+        <div class="contest-card-top">
+          <span class="contest-card-name">${escHtml(c.title)}</span>${badgeHtml(status)}
+        </div>
+        <div class="contest-card-meta">
+          <span>📅 ${formatDate(c.start_time)}</span>
+          <span>⏱ ${formatDurationHuman(c.start_time, c.end_time)}</span>
+          <span>📋 ${c.problems_count ?? '?'} задач</span>
+        </div>
+      </div>
+      <div class="contest-card-right">
+        ${timerHtml}
+        <div class="contest-participants">👤 ${c.participants_count ?? 0} участников</div>
+      </div>
+    </div>`
+  }).join('')
+  startTimers()
+}
+
+function showContestsError(msg, code) {
+  document.getElementById('contestsWrap').innerHTML =
+    `<div class="state-box"><div class="state-icon">⚠</div>${msg}${code?` (${code})`:''}</div>`
+}
+
+// ── ТАЙМЕРЫ ──
+let timerInterval = null
+
+function startTimers() {
+  clearInterval(timerInterval)
+  timerInterval = setInterval(() => {
+    document.querySelectorAll('[data-end]').forEach(el => {
+      const left = new Date(el.dataset.end).getTime() - Date.now()
+      if (left <= 0) { el.textContent = '00:00:00'; return }
+      el.textContent = formatDuration(left)
+      el.classList.toggle('ending', left < 30*60*1000)
+    })
+    document.querySelectorAll('[data-start]').forEach(el => {
+      const left = new Date(el.dataset.start).getTime() - Date.now()
+      el.textContent = left <= 0 ? 'начался' : `через ${formatDuration(left)}`
+    })
+    updateCountdown()
+    updateProblemBannerTimer()
+  }, 1000)
+}
+
+// ── СТРАНИЦА КОНТЕСТА ──
+let currentContest = null
+
+async function openContest(id) {
+  showView('contest')
+  history.pushState({ id }, '', `/contests/${id}`)
+  document.getElementById('contestName').innerHTML = `<span class="skeleton" style="width:320px;height:1.6rem;display:inline-block"></span>`
+  document.getElementById('contestBadge').innerHTML = ''
+  document.getElementById('contestPageMeta').innerHTML = ''
+  document.getElementById('contestCountdown').style.display = 'none'
+  showContestTab('problems')
+
+  try {
+    const res = await fetch(`${API}/contests/${id}/`, { headers: authHeaders() })
+    if (!res.ok) { if (res.status === 401) { handleAuthError(); return } showToast('Контест не найден'); showView('contests'); return }
+    currentContest = await res.json()
+    renderContestPage(currentContest)
+    await Promise.all([loadContestProblems(id), loadLeaderboard(id)])
+  } catch { showToast('Ошибка загрузки'); showView('contests') }
+}
+
+function renderContestPage(c) {
+  const status = contestStatus(c)
+  document.getElementById('contestBadge').innerHTML = badgeHtml(status)
+  document.getElementById('contestName').textContent = c.title
+  document.getElementById('contestPageMeta').innerHTML = `
+    <span>📅 Начало: ${formatDate(c.start_time)}</span>
+    <span>🏁 Конец: ${formatDate(c.end_time)}</span>
+    <span>⏱ ${formatDurationHuman(c.start_time, c.end_time)}</span>
+    <span>📋 ${c.problems_count ?? '?'} задач</span>
+    <span>👤 ${c.participants_count ?? 0} участников</span>`
+  if (status === 'active' || status === 'upcoming') {
+    document.getElementById('contestCountdown').style.display = 'block'
+    document.getElementById('countdownLabel').textContent = status === 'active' ? 'До конца' : 'До начала'
+    updateCountdown()
+  }
+  renderRegisterBlock(c)
+}
+
+function renderRegisterBlock(c) {
+  const status = contestStatus(c)
+  const block = document.getElementById('registerBlock')
+  const btn = document.getElementById('registerBtn')
+  const text = document.getElementById('registerText')
+
+  // завершённый контест — не показываем
+  if (status === 'finished') { block.style.display = 'none'; return }
+
+  if (c.is_registered) {
+    block.style.display = 'none'
+    return
+  }
+
+  // не зарегистрирован
+  block.style.display = 'block'
+  if (status === 'upcoming') {
+    text.textContent = 'Контест ещё не начался. Зарегистрируйся заранее — задачи откроются по старту.'
+  } else {
+    text.textContent = 'Зарегистрируйся чтобы видеть задачи и участвовать в контесте.'
+  }
+  btn.disabled = false
+  btn.textContent = 'Зарегистрироваться'
+}
+
+async function handleRegister() {
+  if (!currentContest) return
+  const btn = document.getElementById('registerBtn')
+  btn.disabled = true
+  btn.textContent = 'Регистрация...'
+  try {
+    const res = await fetch(`${API}/contests/${currentContest.id}/register/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    })
+    if (!res.ok) {
+      if (res.status === 401) { handleAuthError(); return }
+      const err = await res.json().catch(() => ({}))
+      showToast(err.detail || 'Ошибка регистрации')
+      btn.disabled = false; btn.textContent = 'Зарегистрироваться'
+      return
+    }
+    currentContest.is_registered = true
+    currentContest.participants_count = (currentContest.participants_count ?? 0) + 1
+    showToast('✓ Ты зарегистрирован!')
+    renderContestPage(currentContest)
+    // теперь можно грузить задачи
+    await loadContestProblems(currentContest.id)
+  } catch {
+    showToast('Нет связи с сервером')
+    btn.disabled = false; btn.textContent = 'Зарегистрироваться'
+  }
+}
+
+function updateCountdown() {
+  if (!currentContest) return
+  const status = contestStatus(currentContest)
+  if (status !== 'active' && status !== 'upcoming') return
+  const target = status === 'active' ? new Date(currentContest.end_time).getTime() : new Date(currentContest.start_time).getTime()
+  const left = target - Date.now()
+  const el = document.getElementById('countdownValue')
+  if (!el) return
+  if (left <= 0) { el.textContent = status === 'active' ? 'Завершён' : 'Начался'; el.className = 'countdown-value over'; return }
+  el.textContent = formatDuration(left)
+  el.className = `countdown-value ${left < 30*60*1000 ? 'ending' : ''}`
+}
+
+async function loadContestProblems(contestId) {
+  try {
+    const res = await fetch(`${API}/contests/${contestId}/problems/`, { headers: authHeaders() })
+    if (res.status === 403) { renderContestProblems(null); return }
+    if (!res.ok) { renderContestProblems([]); return }
+    const data = await res.json()
+    renderContestProblems(Array.isArray(data) ? data : (data.results ?? []))
+  } catch { renderContestProblems([]) }
+}
+
+function renderContestProblems(problems) {
+  const tbody = document.getElementById('contestProblemsBody')
+
+  // бэк вернул 403 — не зарегистрирован
+  if (problems === null) {
+    tbody.innerHTML = `<tr><td colspan="5">
+      <div class="locked-notice">
+        <div class="lock-icon">🔒</div>
+        Задачи доступны только участникам<br>
+        <span style="font-size:.75rem;opacity:.6">Зарегистрируйся чтобы увидеть задачи</span>
+      </div></td></tr>`
+    return
+  }
+
+  if (!problems.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="state-box" style="padding:2rem">Задачи ещё не добавлены</div></td></tr>`; return
+  }
+  tbody.innerHTML = problems.map((p, i) => `
+    <tr class="clickable" style="animation-delay:${i*30}ms" onclick="openProblem('${p.slug}')">
+      <td style="width:36px;text-align:center">${statusDot(p.user_status)}</td>
+      <td class="td-num">${String(i+1).padStart(2,'0')}</td>
+      <td class="td-title">${escHtml(p.title)}</td>
+      <td>${diffLabel(p.difficulty)}</td>
+      <td style="text-align:right;font-family:var(--mono);font-size:.78rem;color:var(--muted)">${p.solved_percent ?? '—'}%</td>
+    </tr>`).join('')
+}
+
+async function loadLeaderboard(contestId) {
+  try {
+    const res = await fetch(`${API}/contests/${contestId}/leaderboard/`, { headers: authHeaders() })
+    if (!res.ok) { renderLeaderboard([]); return }
+    const data = await res.json()
+    renderLeaderboard(Array.isArray(data) ? data : (data.results ?? []))
+  } catch { renderLeaderboard([]) }
+}
+
+function renderLeaderboard(rows) {
+  const tbody = document.getElementById('leaderboardBody')
+  const myUsername = localStorage.getItem('username')
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="4"><div class="state-box" style="padding:2rem">Пока никто не участвовал</div></td></tr>`; return
+  }
+  const rankEmoji = ['🥇','🥈','🥉']
+  tbody.innerHTML = rows.map((r, i) => {
+    const isMe = r.username === myUsername
+    return `
+    <tr class="${isMe ? 'lb-me' : ''}">
+      <td class="lb-rank ${i < 3 ? `lb-rank-${i+1}` : ''}">${rankEmoji[i] ?? i+1}</td>
+      <td><div class="lb-user">
+        <div class="lb-avatar">${(r.username||'?').slice(0,2).toUpperCase()}</div>
+        <span class="lb-username">${escHtml(r.username)}${isMe ? ' <span style="color:var(--muted);font-size:.7rem">(ты)</span>' : ''}</span>
+      </div></td>
+      <td class="lb-solved">${r.solved ?? 0} / ${r.total ?? '?'}</td>
+      <td class="lb-score">${r.score ?? 0}</td>
+    </tr>`
+  }).join('')
+}
+
+function showContestTab(tab) {
+  document.querySelectorAll('.contest-tab').forEach(b => b.classList.toggle('active', b.dataset.ctab === tab))
+  document.getElementById('panelProblems').classList.toggle('show', tab === 'problems')
+  document.getElementById('panelLeaderboard').classList.toggle('show', tab === 'leaderboard')
+}
+
+document.querySelectorAll('.contest-tab').forEach(btn => {
+  btn.addEventListener('click', () => showContestTab(btn.dataset.ctab))
+})
+
+// ── ЗАДАЧА ВНУТРИ КОНТЕСТА ──
+let monacoEditor = null
+let currentProblemId = null
+let currentProblemSlug = null
+
+function initMonaco(value = '# напиши решение здесь\n') {
+  require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } })
+  require(['vs/editor/editor.main'], () => {
+    if (monacoEditor) { monacoEditor.dispose(); monacoEditor = null }
+    monacoEditor = monaco.editor.create(document.getElementById('monacoContainer'), {
+      value, language:'python', theme:'vs-dark', fontSize:14, lineHeight:22,
+      fontFamily:"'JetBrains Mono', monospace", fontLigatures:true,
+      minimap:{enabled:false}, scrollBeyondLastLine:false,
+      renderLineHighlight:'line', padding:{top:16,bottom:16},
+      smoothScrolling:true, cursorBlinking:'smooth',
+    })
+    new ResizeObserver(() => monacoEditor.layout()).observe(document.getElementById('monacoContainer'))
+  })
+}
+
+document.getElementById('langSelect').addEventListener('change', e => {
+  if (!monacoEditor) return
+  const langMap = { python:'python', javascript:'javascript', go:'go', cpp:'cpp' }
+  monaco.editor.setModelLanguage(monacoEditor.getModel(), langMap[e.target.value] || 'plaintext')
+})
+
+async function openProblem(slug) {
+  if (!currentContest) return
+  showView('problem')
+  history.pushState({ contestId: currentContest.id, slug }, '', `/contests/${currentContest.id}/problems/${slug}`)
+
+  document.getElementById('problemNum').textContent = ''
+  document.getElementById('problemName').innerHTML = `<span class="skeleton" style="width:60%;height:1.4rem;display:inline-block"></span>`
+  document.getElementById('problemMeta').innerHTML = ''
+  document.getElementById('problemBody').innerHTML = [100,88,72,60].map(w =>
+    `<div class="skeleton" style="width:${w}%;margin-bottom:.75rem"></div>`).join('')
+  document.getElementById('resultPanel').classList.add('hidden')
+  document.getElementById('problemContestName').textContent = currentContest.title
+  updateProblemBannerTimer()
+
+  if (!monacoEditor) initMonaco()
+
+  try {
+    const res = await fetch(`${API}/problems/${slug}/`, { headers: authHeaders() })
+    if (!res.ok) { if (res.status === 401) { handleAuthError(); return } showToast('Задача не найдена'); showView('contest'); return }
+    const p = await res.json()
+    currentProblemId = p.id
+    currentProblemSlug = p.slug
+    renderProblem(p)
+  } catch { showToast('Ошибка загрузки'); showView('contest') }
+}
+
+function updateProblemBannerTimer() {
+  if (!currentContest) return
+  const el = document.getElementById('problemContestTimer')
+  if (!el) return
+  const status = contestStatus(currentContest)
+  if (status === 'active') {
+    const left = new Date(currentContest.end_time).getTime() - Date.now()
+    el.textContent = left > 0 ? `⏱ ${formatDuration(left)}` : 'завершён'
+  } else {
+    el.textContent = status === 'upcoming' ? 'ещё не начался' : 'завершён'
+  }
+}
+
+function renderProblem(p) {
+  document.getElementById('problemNum').textContent = `#${String(p.id).padStart(3,'0')}`
+  document.getElementById('problemName').textContent = p.title
+  document.getElementById('problemMeta').innerHTML = `
+    ${diffLabel(p.difficulty)}
+    ${(p.tags||[]).map(t=>`<span class="tag">${escHtml(t.name)}</span>`).join('')}
+    <span style="margin-left:auto;font-family:var(--mono);font-size:.72rem;color:var(--muted)">
+      ⏱ ${p.time_limit_ms}ms &nbsp;💾 ${p.memory_limit_mb}MB
+    </span>`
+  const examples = (p.examples||[]).map((e,i) => `
+    <h3>Пример ${i+1}</h3>
+    <div class="example-block">
+      <div class="example-label">Ввод</div><div class="example-val">${escHtml(e.input)}</div>
+      <div class="example-label" style="margin-top:.5rem">Вывод</div><div class="example-val">${escHtml(e.output)}</div>
+      ${e.explanation ? `<div class="example-label" style="margin-top:.5rem">Пояснение</div>
+        <div class="example-val" style="color:var(--muted)">${escHtml(e.explanation)}</div>` : ''}
+    </div>`).join('')
+  const constraints = (p.constraints||[]).length
+    ? `<h3>Ограничения</h3><ul class="constraints-list">${p.constraints.map(c=>`<li>${escHtml(c)}</li>`).join('')}</ul>` : ''
+  document.getElementById('problemBody').innerHTML = `<p>${p.description}</p>${examples}${constraints}`
+  if (p.last_submission_code && monacoEditor) monacoEditor.setValue(p.last_submission_code)
+}
+
+// ── SUBMIT — постит на /api/contests/<id>/submit/ ──
+async function handleSubmit() {
+  if (!monacoEditor || !currentContest || !currentProblemId) return
+  const code = monacoEditor.getValue().trim()
+  if (!code) { showToast('Напиши решение!'); return }
+
+  const status = contestStatus(currentContest)
+  if (status !== 'active') {
+    showToast(status === 'upcoming' ? 'Контест ещё не начался' : 'Контест завершён')
+    return
+  }
+
+  if (!localStorage.getItem('access_token')) { showToast('Нужно войти в аккаунт'); return }
+  if (!currentContest.is_registered) { showToast('Сначала зарегистрируйся на контест'); return }
+
+  const btn = document.getElementById('submitBtn')
+  btn.disabled = true; btn.textContent = 'Отправка...'
+  const panel = document.getElementById('resultPanel')
+  panel.classList.remove('hidden')
+  document.getElementById('resultStatus').className = 'result-status pending'
+  document.getElementById('resultStatus').textContent = '● Проверяется...'
+  document.getElementById('resultBody').innerHTML = ''
+
+  try {
+    const res = await fetch(`${API}/contests/${currentContest.id}/submit/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ problem_slug: currentProblemSlug, code, language: document.getElementById('langSelect').value })
+    })
+    if (!res.ok) {
+      if (res.status === 401) { handleAuthError(); return }
+      const err = await res.json().catch(() => ({}))
+      showToast(err.detail || 'Ошибка отправки'); resetSubmitBtn(); return
+    }
+    const submission = await res.json()
+    waitForResult(submission.id)
+  } catch { showToast('Нет связи с сервером'); resetSubmitBtn() }
+}
+
+function waitForResult(id) {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws'
+  const token = localStorage.getItem('access_token')
+  const ws = new WebSocket(`${proto}://${location.host}/ws/submissions/${id}/?token=${token}`)
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data)
+    if (data.status === 'pending' || data.status === 'running') {
+      document.getElementById('resultStatus').textContent = data.status === 'running' ? '● Запущен...' : '● Ожидание...'
+      return
+    }
+    showResult(data); resetSubmitBtn()
+    if (currentContest) loadLeaderboard(currentContest.id)
+    ws.close()
+  }
+  ws.onerror = () => { showToast('Ошибка WebSocket'); resetSubmitBtn(); ws.close() }
+  ws.onclose = (e) => { if (e.code !== 1000) { showToast('Соединение прервано'); resetSubmitBtn() } }
+}
+
+function showResult(s) {
+  const ok = s.status === 'accepted'
+  document.getElementById('resultStatus').className = `result-status ${ok ? 'accepted' : 'wrong'}`
+  document.getElementById('resultStatus').textContent = ok ? '✓ Принято' : `✗ ${statusText(s.status)}`
+  document.getElementById('resultBody').innerHTML = `
+    <div class="result-row"><span>Статус</span><span>${statusText(s.status)}</span></div>
+    ${s.runtime_ms != null ? `<div class="result-row"><span>Время</span><span>${s.runtime_ms} ms</span></div>` : ''}
+    ${s.memory_mb  != null ? `<div class="result-row"><span>Память</span><span>${s.memory_mb} MB</span></div>` : ''}`
+  showToast(ok ? '🎉 Задача решена!' : '❌ Попробуй ещё раз')
+}
+
+function statusText(s) {
+  return { accepted:'Принято', wrong_answer:'Неверный ответ', time_limit:'Превышен лимит времени',
+    memory_limit:'Превышен лимит памяти', runtime_error:'Ошибка выполнения', compilation_error:'Ошибка компиляции' }[s] ?? s
+}
+
+function resetSubmitBtn() {
+  const btn = document.getElementById('submitBtn')
+  btn.disabled = false; btn.textContent = 'Отправить →'
+}
+
+document.getElementById('submitBtn').addEventListener('click', handleSubmit)
+document.getElementById('runBtn').addEventListener('click', () => showToast('Run появится позже'))
+
+// ── НАВИГАЦИЯ ──
+function showView(name) {
+  document.getElementById('view-contests').style.display = name === 'contests' ? 'block' : 'none'
+  document.getElementById('view-contest').style.display  = name === 'contest'  ? 'block' : 'none'
+  document.getElementById('view-problem').style.display  = name === 'problem'  ? 'block' : 'none'
+}
+
+document.getElementById('backBtn').addEventListener('click', () => {
+  currentContest = null
+  showView('contests')
+  history.pushState({}, '', '/contests')
+})
+
+document.getElementById('backToProblemsList').addEventListener('click', () => {
+  showView('contest')
+  history.pushState({ id: currentContest?.id }, '', `/contests/${currentContest?.id}`)
+})
+
+window.addEventListener('popstate', () => {
+  const parts = location.pathname.replace(/\/$/, '').split('/').filter(Boolean)
+  if (parts.length <= 1) { showView('contests'); currentContest = null }
+  else if (parts.length === 2) showView('contest')
+  else showView('problem')
+})
+
+// ── INIT ──
+async function init() {
+  await loadNavbar()
+  await loadContests()
+  startTimers()
+
+  const parts = location.pathname.replace(/\/$/, '').split('/').filter(Boolean)
+  if (parts.length >= 2 && !isNaN(Number(parts[1]))) {
+    await openContest(Number(parts[1]))
+    if (parts.length >= 4 && parts[2] === 'problems' && parts[3]) {
+      openProblem(parts[3])
+    }
+  }
+}
+
+init()
+</script>
+</body>
+</html>

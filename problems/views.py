@@ -1,5 +1,6 @@
 from django.db.models import Count, Q, Subquery, OuterRef
 from django.shortcuts import render
+from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
@@ -14,12 +15,25 @@ from submissions.models import Submission
 class ProblemViewSet(viewsets.ModelViewSet):
     serializer_class = ProblemSerializer
     lookup_field = 'slug'
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        qs = Problem.objects.all().order_by('id').prefetch_related('tags').annotate(
-            total=Count('submissions'),
-            accepted=Count('submissions', filter=Q(submissions__status='accepted'))
+        user = self.request.user
+        now = timezone.now()
+
+        access_condition = Q(is_published=True)
+
+        if user.is_authenticated:
+            access_condition |= Q(
+                contest__start_date__lte=now,
+                contest__participants=user,
+            )
+
+        qs = Problem.objects.filter(access_condition).order_by('id').prefetch_related(
+            'tags').annotate(
+            total=Count('submissions__user', distinct=True),
+            accepted=Count('submissions__user', filter=Q(
+                submissions__status='accepted'),
+                           distinct=True)
         )
         if self.request.user.is_authenticated:
             qs = qs.annotate(
@@ -41,7 +55,6 @@ class ProblemViewSet(viewsets.ModelViewSet):
         problem = self.get_object()
         serializer = self.get_serializer(problem)
         return Response(serializer.data)
-
 
 
 class TagViewSet(viewsets.ModelViewSet):

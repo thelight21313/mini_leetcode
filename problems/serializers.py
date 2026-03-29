@@ -25,7 +25,7 @@ class ProblemSerializer(serializers.ModelSerializer):
         if total == 0:
             return 0
         solved = getattr(obj, 'accepted', 0)
-        return solved/total
+        return solved/total * 100
 
     def get_user_status(self, obj):
         status = getattr(obj, 'last_status', None)
@@ -50,7 +50,7 @@ class DetailProblemSerializer(ProblemSerializer):
     last_submission_code = serializers.SerializerMethodField()
 
     def get_last_submission_code(self, obj):
-        request = self.context.get['request']
+        request = self.context.get('request')
         if not request:
             return None
         last_submission = Submission.objects.filter(problem=obj, user=request.user).order_by('-created_at').first()

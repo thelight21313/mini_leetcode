@@ -10,21 +10,27 @@ class Contest(models.Model):
 
     duration_min = models.IntegerField()
 
-    STATUS_CHOICE = [
-        ('upcoming', 'предстоит'),
-        ('active', 'сейчас идёт'),
-        ('finished', 'завершён')
-    ]
+    @property
+    def status(self):
+        from django.utils import timezone
+        now = timezone.now()
+        if now < self.start_date:
+            return 'upcoming'
+        if now > self.end_date:
+            return 'finished'
+        return 'active'
 
-    status = models.CharField(choices=STATUS_CHOICE)
-
-    problems = models.ManyToManyField('problems.Problem')
+    problems = models.ManyToManyField('problems.Problem', related_name='contest')
 
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    participants = models.ManyToManyField(User, through='ContestParticipant', related_name='contests', blank=True)
 
 
 class ContestParticipant(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    register_date = models.DateTimeField(auto_now_add=True)
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE)
-    register_date = models.DateTimeField()
-    rating_place = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('user', 'contest')
