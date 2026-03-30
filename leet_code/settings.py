@@ -85,10 +85,11 @@ WSGI_APPLICATION = 'leet_code.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': os.environ.get('DB_HOST'),
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASS'),
+        'NAME': os.getenv('DB_NAME', 'dbname'),
+        'USER': os.getenv('DB_USER', 'dbuser'),
+        'PASSWORD': os.getenv('DB_PASS', 'pasSNpos#12'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
@@ -207,3 +208,10 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
     'ROTATE_REFRESH_TOKENS': False
 }
+
+
+import sys
+
+if 'pytest' in sys.modules:
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True

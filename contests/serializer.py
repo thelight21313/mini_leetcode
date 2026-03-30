@@ -5,9 +5,13 @@ from .models import Contest
 
 
 class ContestSerializer(serializers.ModelSerializer):
+    start_time = serializers.CharField(source='start_date')
+    end_time = serializers.CharField(source='end_date')
+    participants_count = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Contest
-        fields = ['title', 'id', 'status']
+        fields = ['title', 'id', 'status', 'start_time', 'end_time', 'participants_count']
 
 
 class DetailContestSerializer(serializers.ModelSerializer):

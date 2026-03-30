@@ -48,12 +48,24 @@ class ContestViewSet(viewsets.ModelViewSet):
     def submit(self, request, pk=None):
         user = request.user
         contest = self.get_object()
-        serializer = SubmissionSerializer(data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        submission = serializer.save(user=user, contest=contest)
+        now = timezone.now()
 
-        check_submission.delay(submission.id)
-        return Response(SubmissionSerializer(submission).data, status=201)
+        problem_slug = request.data.get('problem_slug')
+        if contest.status != 'active':
+            return Response(status=400)
+        
+        if not contest.problems.filter(slug=problem_slug).exists():
+            print(problem_slug)
+            return Response(status=400)
+
+        if contest.participants.filter(id=user.id).exists():
+            serializer = SubmissionSerializer(data=request.data, context={'request': request})
+            serializer.is_valid(raise_exception=True)
+            submission = serializer.save(user=user, contest=contest)
+
+            check_submission.delay(submission.id)
+            return Response(SubmissionSerializer(submission).data, status=201)
+        return Response(status=403)
 
     @action(methods=['get'], detail=True)
     def problems(self, request, pk=None):

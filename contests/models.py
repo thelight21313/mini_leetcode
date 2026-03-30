@@ -11,6 +11,11 @@ class Contest(models.Model):
     duration_min = models.IntegerField()
 
     @property
+    def end_date(self):
+        from datetime import timedelta
+        return self.start_date + timedelta(minutes=self.duration_min)
+
+    @property
     def status(self):
         from django.utils import timezone
         now = timezone.now()

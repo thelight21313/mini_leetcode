@@ -1,9 +1,10 @@
 from django.db.models import Count, Q, Subquery, OuterRef
 from django.shortcuts import render
 from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-
+from problems.filters import ProblemFilter
 from problems.models import Problem, Tag
 from problems.serializers import TagSerializer, ProblemSerializer, DetailProblemSerializer
 from rest_framework.decorators import action
@@ -15,6 +16,8 @@ from submissions.models import Submission
 class ProblemViewSet(viewsets.ModelViewSet):
     serializer_class = ProblemSerializer
     lookup_field = 'slug'
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ProblemFilter
 
     def get_queryset(self):
         user = self.request.user
