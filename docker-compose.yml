@@ -49,6 +49,8 @@ services:
       - DB_NAME=dbname
       - DB_USER=dbuser
       - DB_PASS=pasSNpos#12
+    env_file:
+      - .env
 
   flower:
     build:
