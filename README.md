@@ -86,3 +86,20 @@ docker compose exec django-app python manage.py migrate
 Nginx уже настроен для работы по **HTTPS**, включая поддержку **WebSocket Secure (`wss://`)**.
 
 Если используются свои сертификаты, убедитесь, что пути к `fullchain.pem` и `privkey.pem` корректно указаны в конфигурации Nginx или подключены через Docker volumes.
+
+Если при запуске кода вы получаете статус Internal Error (13) или runtime_error с сообщением в логах 
+Judge0 Failed to create control group, это означает несовместимость Judge0 v1.13 с системой Cgroup v2,
+которая используется в новых ядрах Linux
+
+Отредактируйте параметры загрузчика GRUB (в файле /etc/default/grub или /etc/default/grub.d/50-cloudimg-settings.cfg для облачных серверов):
+```bash
+GRUB_CMDLINE_LINUX_DEFAULT="console=tty1 console=ttyS0 systemd.unified_cgroup_hierarchy=0"
+```
+Сохрани и выйди: Ctrl + O, Enter, Ctrl + X
+
+Примени и перезагрузись:
+
+```bash
+sudo update-grub
+sudo reboot
+```
